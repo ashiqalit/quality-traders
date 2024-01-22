@@ -50,11 +50,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'accounts.middleware.middleware.KeepLoggedInMiddleware'
 ]
-
-KEEP_LOGGED_KEY                   = 'keep_me_logged' # session key
-KEEP_LOGGED_DURATION              = 365         # in days
 
 
 ROOT_URLCONF = 'quality-traders.urls'
