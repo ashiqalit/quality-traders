@@ -7,7 +7,11 @@ from django.contrib.auth import authenticate,login,logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User, auth
 from .forms import CreateUserForm
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
+from .models import Profile
+import random, json, uuid
+from .helper import MessageHandler
+
 
 
 def registerpage(request):
@@ -17,10 +21,18 @@ def registerpage(request):
     if request.method == 'POST':
         form = CreateUserForm(request.POST)
         if form.is_valid():
-            form.save()
-            user = form.cleaned_data.get('username')
-            messages.success(request, 'Account was created for ' + user)
-            return redirect('login')
+            user=form.save()
+            otp=random.randint(1000,9999)
+            profile=Profile.objects.create(otp=f'{otp}')
+            profile.uid = str(uuid.uuid4())
+            if request.POST.get('method_otp')=="id_otp_1":
+                messagehandler=MessageHandler(request.POST.get('phone'),otp).send_otp_via_whatsapp()
+            else:
+                pass
+                # messagehandler=MessageHandler(request.POST.get('phone'),otp).send_otp_via_message()
+            red=redirect(f'otp/{profile.uid}/')
+            red.set_cookie("can_otp_enter",True,max_age=600) 
+            return red  
     context = {'form':form}
     return render(request, 'store/auth/register.html', context)
 
@@ -46,3 +58,17 @@ def logoutpage(request):
     logout(request)
     messages.success(request, 'Logged out Successfully')
     return redirect('login')
+
+def otpVerify(request,uid):
+    if request.user.is_authenticated:
+        return redirect('home')
+    if request.method=="POST":
+        profile=Profile.objects.get(uid=uid)     
+        if request.COOKIES.get('can_otp_enter')!=None:
+            if request.POST['otp'] == profile.otp:
+                red=redirect('home')
+                red.set_cookie('verified',True)
+                return red
+    return render(request,"store/auth/otp.html",{'id':uid})
+  
+     
