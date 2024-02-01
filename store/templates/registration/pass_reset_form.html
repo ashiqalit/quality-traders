@@ -1,0 +1,31 @@
+{% extends "store/layouts/main.html" %}
+
+{% block content %}
+
+<section id="form " style="margin-left: 25%;"><!--form-->
+    <div class="container">
+        <div class="col-sm-4 col-sm-offset-1 ">
+
+            <div class="signup-form"><!--sign up form-->
+                <h2>New Password</h2>
+                <!-- {% if validlink %} -->
+                <form method="post">
+
+                    {% csrf_token %}
+                    {{form}}
+                    
+
+                    <button type="submit" class="btn btn-default">Save</button><br>
+                
+                </form>
+                
+                <!-- {% endif %} -->
+            </div><!--/sign up form-->
+
+        </div>
+        </div>
+    </div>
+</section><!--/form-->
+
+{% endblock content %}
+

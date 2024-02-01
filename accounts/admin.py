@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
-from accounts.models import UserProfile
+from accounts.models import UserCreationForm
 # Register your models here.
 
 # class PhoneInline(admin.StackedInline):

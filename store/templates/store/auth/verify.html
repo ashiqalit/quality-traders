@@ -1,0 +1,35 @@
+{% extends "store/layouts/main.html" %}
+
+{% block content %}
+
+<section id="form"><!--form-->
+    <div class="container d-flex align-items-center justify-content-center">
+        <div class="row d-flex justify-content-center align-items-center">
+            <div class="col-sm-4 col-sm-offset-1">
+                <div class="login-form"><!--login form-->
+                    <h2>Login to your account</h2>
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="number" name="otp" id="otp" placeholder="OTP" />
+                        <!-- <span>
+                            <input type="checkbox" class="checkbox" name="keep_logged_in" />
+                            Keep me signed in
+                        </span> -->
+                        <button type="button" id="submit" class="btn btn-default">Submit</button><br>
+
+                        <ul class="error-list text-danger" style="padding: 0;">
+                            {% for message in messages %}
+                            {{message}}
+                            {% endfor %}
+                        </ul>
+
+                        <span id="errormsg" style="color: red;"></span><br>
+                        <span id="timeout-display" style="color: rgb(0, 0, 0);"></span>
+                    </form>
+                </div><!--/login form-->
+            </div>
+        </div>
+    </div>
+</section><!--/form-->
+{% endblock content %}
+

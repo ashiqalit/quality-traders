@@ -1,0 +1,15 @@
+{% extends "store/layouts/main.html" %}
+{% block content %}
+<div class="container">
+    <div class="col-sm-4">
+        <h2>Reset Password</h2>
+        <p>Instructions for password resetting has been sent to your mail</p>
+        <p>Not recieved? Verify you entered correct email or Check spam folder</p>
+        <p>
+            <a href="{% url 'reset_password' %}">
+                Request a new password reset token
+            </a>
+        </p>
+    </div>
+</div>
+{% endblock %}
