@@ -21,19 +21,17 @@ def registerpage(request):
     return render(request, 'registration/register.html', context)
 
 def loginpage(request):
-    if request.user.is_authenticated:
-        return redirect('home')
-    else:    
-        form = CreateUserForm()
-        if request.method == 'POST':
+    form = CreateUserForm()
+    if request.method == 'POST':
             username=request.POST.get('username')
             password=request.POST.get('password1')
             user = authenticate(request, username=username, password=password)
-            if user is not None:
+            if user is not None : 
                 login(request, user)
                 return redirect('home')
             else:
-                messages.error(request, 'Username or Password is incorrect')
+                messages.error(request, 'Username or Password is incorrect')    
+        
                 
     context = {'form':form}
     return render(request, 'registration/login.html', context)

@@ -10,6 +10,7 @@ class CreateUserForm(UserCreationForm):
     email = forms.EmailField(widget=forms.TextInput(attrs={'placeholder':'Email'}),error_messages={'exists':'Email already exists'})
     password1 = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder':'Password'}))
     password2 = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder':'Confirm Password'}))
+    is_active = forms.BooleanField(required=False, widget=forms.HiddenInput())
 
     class Meta:
         model = User

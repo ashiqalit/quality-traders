@@ -40,6 +40,8 @@ INSTALLED_APPS = [
 
     'accounts.apps.AccountsConfig',
     'store.apps.StoreConfig',
+    'dashboard.apps.DashboardConfig',
+    'django_filters',
 ]
 
 MIDDLEWARE = [
@@ -50,6 +52,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'dashboard.middleware.LogoutInactiveUser',
 ]
 
 
@@ -136,7 +139,7 @@ STATICFIELDS_DIRS = [
 ]
 STATIC_ROOT = os.path.join(BASE_DIR, 'assets')
 
-MEDIA_URL = '/media/'
+MEDIA_URL = 'media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # smtp configuration
