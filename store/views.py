@@ -1,6 +1,10 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.contrib import messages
 from store.models import Category, Product
+from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse,HttpResponse
+
 # Create your views here.
 
 @login_required(login_url="login")
@@ -28,4 +32,10 @@ def product_detail(request, id):
     }
     return render(request, 'store/product-details.html', context)
 
+# cart
 
+
+#checkout
+
+def checkout(request):
+    return HttpResponse('This is checkout')

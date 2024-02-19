@@ -6,3 +6,6 @@ admin.site.register(Category)
 admin.site.register(Sub_category)
 admin.site.register(Product)
 admin.site.register(Brand)
+admin.site.register(Order)
+admin.site.register(Cart)
+
