@@ -3,6 +3,7 @@
 {% block content %}
 {% load static %}
 {% include 'store/includes/carousel.html' %}
+
 <div class="col-sm-3">
     <div class="left-sidebar">
         <h2>Category</h2>
@@ -30,7 +31,7 @@
             {% endfor %}
 
         </div><!--/category-products-->
-    
+
         <div class="brands_products"><!--brands_products-->
             <h2>Brands</h2>
             <div class="brands-name">
@@ -45,19 +46,20 @@
                 </ul>
             </div>
         </div><!--/brands_products-->
-        
+
         <div class="price-range"><!--price-range-->
             <h2>Price Range</h2>
             <div class="well text-center">
-                 <input type="text" class="span2" value="" data-slider-min="0" data-slider-max="600" data-slider-step="5" data-slider-value="[250,450]" id="sl2" ><br />
-                 <b class="pull-left">$ 0</b> <b class="pull-right">$ 600</b>
+                <input type="text" class="span2" value="" data-slider-min="0" data-slider-max="600" data-slider-step="5"
+                    data-slider-value="[250,450]" id="sl2"><br />
+                <b class="pull-left">$ 0</b> <b class="pull-right">$ 600</b>
             </div>
         </div><!--/price-range-->
-        
+
         <div class="shipping text-center"><!--shipping-->
             <img src="{% static 'images/home/shipping.jpg' %}" alt="" />
         </div><!--/shipping-->
-    
+
     </div>
 </div>
 
@@ -78,36 +80,44 @@
                             <div class="single-products product_data">
                                 <div class="productinfo text-center">
                                     {% csrf_token %}
-                                    <input type="hidden" value="{{ prod.id }}" class="prod_id">
-                                    <img src="{{prod.image.url}}" alt="" height="300px" width="auto"/>
+                                    <input type="hidden" value="{{ prod.id }}" class="prod_id" name="product_id">
+                                    <img src="{{prod.image.url}}" alt="" height="300px" width="auto" />
                                     <h2>₹{{prod.price}}</h2>
                                     <p class="prod_name">{{prod.name}}</p>
-                                    <a href="#" data-product={{prod.id}} data-action="add" class="btn btn-default add-to-cart"><i
-                                            class="fa fa-shopping-cart"></i>Add to cart</a>
+                                    {% if item_already_in_cart %}
+                                    <a href="{% url 'show-cart' %}" class="btn btn-warning shadow px-5 
+                                        py-2 ms-4">Go to cart</a>
+                                    {% else %}
+                                    <a href="#" data-product={{prod.id}} data-action="add"
+                                        class="btn btn-default add-to-cart"><i class="fa fa-shopping-cart"></i>Add to
+                                        cart</a>
+                                    {% endif %}
                                 </div>
                                 <div class="product-overlay">
                                     <div class="overlay-content">
                                         <h2>₹{{prod.price}}</h2>
                                         <p>{{prod.name}}</p>
-                                        <a href="#" data-product={{prod.id}} data-action="add" class="btn btn-default add-to-cart"><i
-                                                class="fa fa-shopping-cart"></i>Add to cart</a>
+                                        <a href="#" data-product={{prod.id}} data-action="add"
+                                            class="btn btn-default add-to-cart"><i class="fa fa-shopping-cart"></i>Add
+                                            to cart</a>
                                     </div>
                                 </div>
                             </div>
                             <div class="choose">
                                 <ul class="nav nav-pills nav-justified">
                                     <li><a href="#"><i class="fa fa-plus-square"></i>Add to wishlist</a></li>
-                                    <li><a href="{% url 'product_detail' prod.id  %}"><i class="fa fa-plus-square"></i>View Product</a></li>
+                                    <li><a href="{% url 'product_detail' prod.id  %}"><i
+                                                class="fa fa-plus-square"></i>View Product</a></li>
                                 </ul>
                             </div>
                         </div>
                     </div>
                     {% endfor %}
-                    
-                    
-                    
-                    
-                    
+
+
+
+
+
 
                 </div><!--features_items-->
 

@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'store.apps.StoreConfig',
     'dashboard.apps.DashboardConfig',
     'django_filters',
+    "phonenumber_field",
 ]
 
 MIDDLEWARE = [

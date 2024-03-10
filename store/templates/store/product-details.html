@@ -104,6 +104,7 @@
 
 					</div>
 					<div class="col-sm-7">
+						{% csrf_token %}
 						<div class="product-information"><!--/product-information-->
 							<!-- <img src="images/product-details/new.jpg" class="newarrival" alt="" /> -->
 							<h2>{{product.name}}</h2>
@@ -111,10 +112,9 @@
 							<!-- <img src="images/product-details/rating.png" alt="" /> -->
 							<span>
 								<span>₹{{product.price}}</span>
-								<a href="{% url 'cart_add' product.id %}" type="button" class="btn btn-fefault cart">
-									<i class="fa fa-shopping-cart"></i>
-									Add to cart
-								</a>
+								<a href="#" data-product={{product.id}} data-action="add"
+									class="btn btn-default add-to-cart"><i class="fa fa-shopping-cart"></i>Add
+									to cart</a>
 							</span>
 							<p><b>Availability:</b> {{product.availability}}</p>
 							<!-- <p><b>Condition:</b> New</p> -->

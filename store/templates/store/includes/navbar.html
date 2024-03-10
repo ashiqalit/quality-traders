@@ -65,12 +65,12 @@
               <li><a href="#"><i class="fa fa-star"></i> Wishlist</a></li>
               <li><a href="checkout.html"><i class="fa fa-crosshairs"></i> Checkout</a></li>
               {% if user.is_authenticated %}
-              <li><a href="#"><i class="fa fa-shopping-cart"></i> Cart<span class="badge badge-secondary">{{request.session.cart|length}}</span></a>
-                {% if cart_count == 0 %}
+              <li><a href="{% url 'showcart' %}"><i class="fa fa-shopping-cart"></i> Cart<span class="badge badge-secondary cart-count" id="cart-counter">{{ cart_count }}</span></a>
+                <!-- {% if cart_count == 0 %}
                 <span></span>
                 {% else %}
                 <span class="cart-count">{{ cart_count }}</span>
-                {% endif %}
+                {% endif %} -->
               </li>
               <li><a href="{% url 'logout' %}"><i class="fa fa-lock"></i> Logout</a></li>
               {% else %}

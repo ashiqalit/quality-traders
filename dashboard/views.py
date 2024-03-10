@@ -124,6 +124,9 @@ def list_products(request):
     products = Product.objects.all()
     myFilter = ProductFilter(request.GET, queryset=products)
     filterd_products = myFilter.qs
+    for product in products:
+        product.availability = 'Out of stock' if product.quantity == 0 else 'In stock'
+        product.save()
     context = {'all_products' : filterd_products, 'myFilter' : myFilter}
     return render(request, 'dashboard/other/productlist.html', context)
 
