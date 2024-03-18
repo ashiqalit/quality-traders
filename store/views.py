@@ -205,7 +205,7 @@ def checkout(request):
             request.session['total_price'] = neworder.total_price
 
             # tracking number
-            track_no = 'qt' + str(random.randint(1111111, 9999999))
+            track_no = str(request.user.username) + str(random.randint(1111111, 9999999))
             while Order.objects.filter(tracking_no = track_no) is None:
                 track_no = 'qt' + str(random.randint(1111111, 9999999))
             neworder.tracking_no = track_no
@@ -245,3 +245,22 @@ def checkout(request):
             total_price += item.product.price * item.product_qty
         context = {'form':form, 'addresses':addresses,'cartitems':cartitems, 'total_price':total_price}
         return render(request, "store/checkout.html", context)
+
+def view_order(request, t_no):
+    order = Order.objects.filter(tracking_no=t_no).filter(user=request.user).first()
+    orderitems = OrderItem.objects.filter(order=order)
+    context = {'order':order, 'orderitems':orderitems}
+    return render(request, "store/order_view.html", context)
+
+def cancel_order(request):
+    if request.method == 'GET':
+        try:
+            order_id = request.GET['order_id']
+            order = Order.objects.get(id=order_id, user=request.user)
+            order.status = 'Cancelled'
+            order.save()
+            return JsonResponse({'message': 'Order Cancelled', 'order':order.serialize()})
+        except Address.DoesNotExist:
+            return JsonResponse({'error': 'Order does not exist'}, status=404)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)

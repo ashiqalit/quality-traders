@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     'dashboard.apps.DashboardConfig',
     'django_filters',
     "phonenumber_field",
+    'crispy_forms',
+    "crispy_bootstrap3",
 ]
 
 MIDDLEWARE = [
@@ -151,4 +153,6 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = "user@gmail.com"
 EMAIL_HOST_PASSWORD = 'password'
 
-# cart
+# crispy
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap3"
+CRISPY_TEMPLATE_PACK = "bootstrap3"

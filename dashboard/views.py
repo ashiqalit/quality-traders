@@ -1,10 +1,10 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages, admin
 from django.contrib.auth.models import User, Group  
-from store.models import Category, Product, Sub_category, Brand
+from store.models import Category, Product, Sub_category, Brand, Order, OrderItem
 from django.contrib import auth
 from .filters import UserFilter,CategoryFilter,ProductFilter, SubCategoryFilter, BrandFilter
-from .forms import CategoryForm, ProductForm, SubCategoryForm, BrandForm
+from .forms import CategoryForm, ProductForm, SubCategoryForm, BrandForm, OrderForm
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
@@ -257,4 +257,36 @@ def drop_brand(request):
         brand.delete()
         return JsonResponse({'success':True})
         # return redirect('read_categories')
+    return JsonResponse({'success':False})
+
+# orders...........................................................................
+
+def list_orders(request):
+    orders = Order.objects.all()
+    context = {'orders':orders}
+    return render(request, 'dashboard/other/orderlist.html', context)
+
+def edit_order(request, pk):
+    order = Order.objects.get(id=pk)
+    form = OrderForm(instance=order)
+    if request.method == 'POST':
+        form = OrderForm(request.POST, instance=order)
+        if form.is_valid():
+            form.save()
+            return redirect('read_orders')
+    else:
+        context = {
+            'order':order,
+            'form':form,
+            'pk':order.pk,
+        }
+    return render(request, 'dashboard/other/editorder.html', context)
+
+def cancel_order(request):
+    if request.method == 'POST':
+        order_id = request.POST.get('order_id')
+        order = get_object_or_404(Order, id=order_id)
+        order.status = 'Cancelled'
+        order.save()
+        return JsonResponse({'success':True})
     return JsonResponse({'success':False})

@@ -18,4 +18,9 @@ urlpatterns = [
      
     # placeorder
     path('checkout', views.checkout, name='checkout'),
+    path('view-order/<str:t_no>', views.view_order, name='orderview'),
+    path('cancel-order', views.cancel_order, name='cancel-order'),
+    
+
+
 ]

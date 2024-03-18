@@ -1,0 +1,20 @@
+<div class="profile-nav col-md-3">
+    <div class="panel">
+        <div class="user-heading round">
+            <a href="#">
+                <img src="{{user.profile.image.url}}" alt>
+            </a>
+            <h1>{{user.username|title}}</h1>
+        </div>
+        <ul id="addresslist" class="nav nav-pills nav-stacked">
+            <li class="checked"><a href="{% url 'view_profile' %}"> <i class="fa fa-user"></i>
+                    Profile</a></li>
+            <li><a href="{% url 'profile_address' %}"> <i
+                        class="fa fa-calendar"></i> Addresses
+                    <span class="label label-warning pull-right r-activity" id="address_count">{{ count }}</span></a>
+            </li>
+            <li><a href="{% url 'profile_orders' %}"> <i class="fa fa-edit"></i>
+                    Orders</a></li>
+        </ul>
+    </div>
+</div>

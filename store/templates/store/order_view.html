@@ -1,0 +1,122 @@
+{% extends "store/layouts/main.html" %}
+
+{% block content %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+<div class="container my-3">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel-shadow">
+                <div class="panel panel-warning">
+                    <div class="panel-heading">
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <h3 {% if order.status == 'Pending' %} 
+                                    class="text-default"
+                                    {% elif order.status == 'Shipped' %}
+                                    class="text-primary"
+                                    {% elif order.status == 'Out for delivery' %}
+                                    class="text-info"
+                                    {% elif order.status == 'Completed' %}
+                                    class="text-success"
+                                    {% elif order.status == 'Cancelled' %}
+                                    class="text-danger"
+                                {% endif %}>
+                                
+                                Order Status: {{ order.status }}</h3>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-6">
+                                <h3>Order View</h3>
+                            </div>
+                            <div class="col-xs-6 text-right">
+                                <a href="{% url 'profile_orders' %}" class="btn btn-primary text-white">
+                                    <i class="fa fa-repeat"></i> Back
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h4>Shipping Address</h4>
+                                <hr>
+                                <label>First Name</label>
+                                <div class="border">{{ order.address.fname }}</div>
+                                <label>Last Name</label>
+                                <div class="border">{{ order.address.lname }}</div>
+                                <label>Email</label>
+                                <div class="border">{{ order.address.email }}</div>
+                                <label>Contact Number</label>
+                                <div class="border">{{ order.address.phone }}</div>
+                                <label>Address</label>
+                                <div class="border">{{ order.address.address }}</div>
+                                <label>Pin Code</label>
+                                <div class="border">{{ order.address.pincode }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <h4>Order Details</h4>
+                                <hr>
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Quantity</th>
+                                            <th>Price</th>
+                                            <th>Image</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for item in orderitems %}
+                                        
+                                            <tr onclick="window.location='{% url 'product_detail' item.product.id %}';" style="cursor:pointer;">
+                                                <td>{{ item.product.name }}</td>
+                                                <td>{{ item.quantity }}</td>
+                                                <td>{{ item.price }}</td>
+                                                <td>
+                                                    <img src="{{ item.product.image.url }}" height="50px" width="auto"
+                                                        alt="">
+                                                </td>
+                                            </tr>
+                                        
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                                <table class="table">
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <h5 class="text-primary">Payment Mode: {{ order.payment_mode }}</h5>
+                                                <h5 class="text-primary">Tracking No.: {{ order.tracking_no }}</h5>
+                                            </td>
+                                            <td></td>
+                                            <td></td>
+                                            <td>
+                                                <h4 class="text-right">
+                                                    <strong class="text-success">Grand Total: ₹{{ order.total_price }}
+                                                    </strong>
+                                                </h4>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+{% endblock content %}
+{% block scripts %}
+
+{% endblock scripts %}

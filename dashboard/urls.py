@@ -1,5 +1,7 @@
 from django.urls import path
 from dashboard import views
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path ('', views.dashboard, name = 'dashboard'),
@@ -41,4 +43,13 @@ urlpatterns = [
 
     # path ('update/<int:pk>/', views.update_user, name = 'update_user'),
     # path ('delete/<int:pk>/', views.delete_user, name = 'delete_user'),
+
+# order
+    path ('orders/', views.list_orders, name = 'read_orders'),
+    path ('edit_order/<int:pk>/', views.edit_order, name = 'edit_order'),
+    path ('cancel_order/', views.cancel_order, name = 'cancel_order'),
+    # path('update_order_status/<int:order_pk>/<str:new_status>/', views.update_order_status, name='update_order_status'),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

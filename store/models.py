@@ -97,6 +97,7 @@ class Order(models.Model):
     payment_id = models.CharField(max_length=250, null=True)
     order_status = (
         ('Pending','Pending'),
+        ('Cancelled','Cancelled'),
         ('Shipped','Shipped'),
         ('Out for delivery','Out for delivery'),
         ('Completed','Completed'),
@@ -110,6 +111,12 @@ class Order(models.Model):
 
     def __str__(self):
         return '{} - {}'.format(self.id, self.tracking_no)
+    
+    def serialize(self):
+        return {
+            'id': self.id,
+            'status': self.status,
+        }
     
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)

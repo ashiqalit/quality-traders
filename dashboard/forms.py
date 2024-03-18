@@ -1,6 +1,6 @@
 from django import forms
 from django.forms import ModelForm
-from store.models import Category,Product,Sub_category,Brand
+from store.models import Category,Product,Sub_category,Brand,Order
 # from django.contrib.auth.hashers import make_password
 
 class CategoryForm(ModelForm):
@@ -36,4 +36,13 @@ class BrandForm(ModelForm):
 
             'description': forms.TextInput(attrs={'class': 'form-control'}),
 
+        }   
+
+class OrderForm(ModelForm):
+    class Meta:
+        model = Order
+        fields = ('status',)
+        widgets = {
+
+            
         }   

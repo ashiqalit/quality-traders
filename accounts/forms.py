@@ -2,6 +2,8 @@
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django import forms
+from .models import Profile
+from django.forms import Form
 
 class CreateUserForm(UserCreationForm):
     first_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'First Name'}))
@@ -20,3 +22,13 @@ class CreateUserForm(UserCreationForm):
         if User.objects.filter(email=self.cleaned_data['email']).exists():
             raise forms.ValidationError(self.fields['email'].error_messages['exists'])
         return self.cleaned_data['email']    
+
+class ProfileUpdateForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = ('phone','gender','date_of_birth','image')
+
+class UserUpdateForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ('first_name','last_name','email')

@@ -106,3 +106,61 @@ $('.cart_quantity_delete').click(function (e) {
     });
 });
 
+$('.address_delete').click(function (e) {
+    e.preventDefault();
+
+    var id = $(this).attr("pid").toString();
+    var address = this
+
+    $.ajax({
+        type: "GET",
+        url: "remove-address",
+        data: {
+            address_id: id,
+        },
+        success: function (response, data) {
+            if (response) {
+                address.parentNode.parentNode.remove()
+                alertify.success(response.message)
+                if (response.address_count) {
+                    document.getElementById("address_count").innerText = response.address_count;
+                  }
+                else{
+                    document.getElementById("address_count").innerText = '0';
+                }
+            }
+
+        },
+        error: function (xhr, status, error) {
+            console.error('Error deleting the address:', error);
+        }
+    });
+});
+
+// Cancel order
+$('.order_cancel').click(function (e) {
+    e.preventDefault();
+
+    var id = $(this).attr("pid").toString();
+    var orderStatusCell = $('#order_status_' + id);
+
+    $.ajax({
+        type: "GET",
+        url: "/cancel-order",
+        data: {
+            order_id: id,
+        },
+        success: function (response, data) {
+            if (response) {
+                orderStatusCell.text(response.order.status);
+                alertify.success(response.message)
+            }
+
+        },
+        error: function (xhr, status, error) {
+            console.error('Error deleting the address:', error);
+        }
+    });
+});
+
+

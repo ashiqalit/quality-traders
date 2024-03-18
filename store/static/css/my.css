@@ -1,0 +1,26 @@
+.orders .btn.btn-default{
+    background-color: #fbc02d;
+    color: #ffffff;
+}
+
+.orders .btn.btn-default:hover {
+    background-color: inherit;
+    color: inherit;
+}
+
+.panel-shadow {
+    -webkit-box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.2);
+    -moz-box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.2);
+    box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.2);
+}
+
+.col-md-6 .border.padding-1 {
+    padding: 1px !important;
+}
+
+.border {
+    border: 1px solid #ccc;
+    padding: 2px; /* Adjust padding as needed */
+}
+
+

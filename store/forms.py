@@ -4,8 +4,8 @@ from .models import Address
 
 
 class AddressForm(forms.ModelForm):
-    fname = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Enter Firstname', 'style': 'width: 200px;'}))
-    lname = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Enter Lastname', 'style': 'width: 200px;'}))
+    fname = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Enter Firstname', 'style': 'width: 200px;'}), label='First Name')
+    lname = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Enter Lastname', 'style': 'width: 200px;'}), label='Last Name')
     email = forms.EmailField(widget=forms.TextInput(attrs={'placeholder': 'Enter Email', 'style': 'width: 200px;'}))
     phone = PhoneNumberField(widget=forms.TextInput(attrs={'placeholder': 'Enter Phone Number', 'style': 'width: 200px;'}))
     pincode = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Enter Pincode', 'style': 'width: 200px;'}))
@@ -13,3 +13,6 @@ class AddressForm(forms.ModelForm):
     class Meta:
         model = Address
         fields = ('fname','lname','email','phone','pincode','address')
+
+
+

@@ -61,9 +61,9 @@
         <div class="col-sm-8">
           <div class="shop-menu pull-right">
             <ul class="nav navbar-nav">
-              <li><a href="#"><i class="fa fa-user"></i> Account</a></li>
+              <li><a href="{% url 'view_profile' %}"><i class="fa fa-user"></i> Account</a></li>
               <li><a href="#"><i class="fa fa-star"></i> Wishlist</a></li>
-              <li><a href="checkout.html"><i class="fa fa-crosshairs"></i> Checkout</a></li>
+              <li><a href="{% url 'checkout' %}"><i class="fa fa-crosshairs"></i> Checkout</a></li>
               {% if user.is_authenticated %}
               <li><a href="{% url 'showcart' %}"><i class="fa fa-shopping-cart"></i> Cart<span class="badge badge-secondary cart-count" id="cart-counter">{{ cart_count }}</span></a>
                 <!-- {% if cart_count == 0 %}

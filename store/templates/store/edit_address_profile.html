@@ -1,0 +1,126 @@
+{% extends "store/layouts/main.html" %}
+
+{% block content %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+
+{% include 'store/includes/user_css.html' %}
+
+<div class="container bootstrap snippets bootdey">
+    <div class="row">
+        {% include 'store/includes/profile_menu.html' %}
+        <div class="profile-info col-md-9">
+            <div class="panel">
+                <div class="bio-graph-heading"></div>
+            </div>
+            <div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h3>Enter a new address</h3>
+                             </div>
+                            <div class="panel-body panel-shadow"
+                                style="display: flex; flex-direction: column; align-items: stretch;">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="panel">
+                                            <div class="panel-body">
+                                                <form method="post">
+                                                    {% csrf_token %}
+                                                    <div class="form-row">
+                                                        <div class="form-group col-md-6 mb-0">
+                                                            {{ form.fname|as_crispy_field }}
+                                                        </div>
+                                                        <div class="form-group col-md-6 mb-0">
+                                                            {{ form.lname|as_crispy_field }}
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-row">
+                                                        <div class="form-group col-md-4 mb-0">
+                                                            {{ form.email|as_crispy_field }}
+                                                        </div>
+                                                        <div class="form-group col-md-4 mb-0">
+                                                            {{ form.phone|as_crispy_field }}
+                                                        </div>
+                                                        <div class="form-group col-md-4 mb-0">
+                                                            {{ form.pincode|as_crispy_field }}
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-row">
+                                                        <div class="form-group col-md-12">
+                                                            {{ form.address|as_crispy_field }}
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-row">
+                                                        <div class="form-group">
+                                                            <button type="submit"
+                                                                class="btn btn-default check_out">Submit</button>
+                                                        </div>
+                                                    </div>
+                                                    <!-- <input type="hidden" value="COD" name="payment_mode"> -->
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                {% if addresses %}
+                                <h3>Your Addresses</h3>
+                                {% else %}
+                                <h3>You have no added addresses</h3>
+                                {% endif %}
+                            </div>
+                            <div class="panel-body panel-shadow"
+                                style="display: flex; flex-direction: column; align-items: stretch;">
+                                {% if addresses %}
+                                {% for address in addresses %}
+                                <div class="row">
+                                    <div class="col-md-9">
+                                        <div class="panel">
+                                            <div class="panel-body"
+                                                style="display: flex; flex-direction: column; align-items: stretch;">
+                                                <div>
+                                                    <p><span>{{ address.fname }}</span>&nbsp<span>{{ address.lname }}</span></p>
+                                                    <p>{{ address.email }}</p>
+                                                    <p>{{ address.phone }}</p>
+                                                    <p>Pin: {{ address.pincode }}</p>
+                                                    <p>{{ address.address }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <td class="cart_delete">
+                                            <a class="address_delete" pid="{{address.id}}" href=""><i
+                                                    class="fa fa-times"></i></a>
+                                        </td>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                                {% else %}
+                                <h3>No addresses were added.</h3>
+                                {% endif %}
+
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+
+
+    {% endblock content %}
+    {% block scripts %}
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+    <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+    <script src="https://netdna.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    {% endblock scripts %}

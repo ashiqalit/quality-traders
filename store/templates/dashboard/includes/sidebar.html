@@ -4,7 +4,7 @@
         <div id="sidebar-menu" class="sidebar-menu">
             <ul>
                 <li class="active">
-                    <a href="index.html"><img src="{% static 'assets/img/icons/dashboard.svg' %}" alt="img"><span>
+                    <a href="{% url 'dashboard' %}"><img src="{% static 'assets/img/icons/dashboard.svg' %}" alt="img"><span>
                             Dashboard</span> </a>
                 </li>
                 <li class="submenu">
@@ -24,6 +24,31 @@
                     </ul>
                 </li>
                 <li class="submenu">
+                    <a href="javascript:void(0);"><img src="{% static 'assets/img/icons/users1.svg' %}" alt="img"><span>
+                            People</span> <span class="menu-arrow"></span></a>
+                    <ul>
+                        <!-- <li><a href="customerlist.html">Customer List</a></li> -->
+                        <!-- <li><a href="addcustomer.html">Add Customer </a></li> -->
+                        <!-- <li><a href="supplierlist.html">Supplier List</a></li> -->
+                        <!-- <li><a href="addsupplier.html">Add Supplier </a></li> -->
+                        <li><a href="{% url 'read_user' %}">User List</a></li>
+                        <li><a href="{% url 'read_user' %}">Add User</a></li>
+                        <!-- <li><a href="storelist.html">Store List</a></li> -->
+                        <!-- <li><a href="addstore.html">Add Store</a></li> -->
+                    </ul>
+                </li>
+                <li class="submenu">
+                    <a href="javascript:void(0);"><img src="{% static 'assets/img/icons/purchase1.svg' %}" alt="img"><span>
+                            Orders</span> <span class="menu-arrow"></span></a>
+                    <ul>
+                        <li><a href="{% url 'read_orders' %}">Order List</a></li>
+                        <!-- <li><a href="addpurchase.html">Add </a></li> -->
+                        <!-- <li><a href="importpurchase.html">Import Purchase</a></li> -->
+                    </ul>
+                </li>
+                
+                
+                <!-- <li class="submenu">
                     <a href="javascript:void(0);"><img src="{% static 'assets/img/icons/sales1.svg' %}" alt="img"><span>
                             Sales</span> <span class="menu-arrow"></span></a>
                     <ul>
@@ -77,20 +102,6 @@
                         <li><a href="createsalesreturn.html">Add Sales Return </a></li>
                         <li><a href="purchasereturnlist.html">Purchase Return List</a></li>
                         <li><a href="createpurchasereturn.html">Add Purchase Return </a></li>
-                    </ul>
-                </li>
-                <li class="submenu">
-                    <a href="javascript:void(0);"><img src="{% static 'assets/img/icons/users1.svg' %}" alt="img"><span>
-                            People</span> <span class="menu-arrow"></span></a>
-                    <ul>
-                        <!-- <li><a href="customerlist.html">Customer List</a></li> -->
-                        <!-- <li><a href="addcustomer.html">Add Customer </a></li> -->
-                        <!-- <li><a href="supplierlist.html">Supplier List</a></li> -->
-                        <!-- <li><a href="addsupplier.html">Add Supplier </a></li> -->
-                        <li><a href="users">User List</a></li>
-                        <li><a href="adduser.html">Add User</a></li>
-                        <!-- <li><a href="storelist.html">Store List</a></li> -->
-                        <!-- <li><a href="addstore.html">Add Store</a></li> -->
                     </ul>
                 </li>
                 <li class="submenu">
@@ -231,7 +242,7 @@
                         <li><a href="grouppermissions.html">Group Permissions</a></li>
                         <li><a href="taxrates.html">Tax Rates</a></li>
                     </ul>
-                </li>
+                </li> -->
             </ul>
         </div>
     </div>
