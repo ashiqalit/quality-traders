@@ -55,7 +55,7 @@
 
         </div>
     </div>
-
+    
     {% include 'store/includes/footer.html' %}
 
     <script src="{% static 'js/jquery.js' %}"></script>
@@ -66,10 +66,20 @@
     <script src="{% static 'js/main.js' %}"></script>
     <script src="{% static 'js/cart.js' %}"></script>
 
+
     {% comment %} alertifyjs {% endcomment %}
 
     <script src="//cdn.jsdelivr.net/npm/alertifyjs@1.13.1/build/alertify.min.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        {% for message in messages %}
+        swal.fire({
+            icon:"{{message.tags}}",
+            title:"{{message}}",
+            timer:2000
+        })  
+        {% endfor %}
+     </script>
 
     <script type="text/javascript">
         var user = '{{request.user}}'
@@ -90,17 +100,12 @@
         }
         const csrftoken = getToken('csrftoken');
     </script>
-    <script>
-        alertify.set('notifier','position','top-right');
-        {% for msg in messages %}
-            alertify.success('{{msg}}')
-        {% endfor %}
-    </script>
+    
 
     {% block scripts %}
 
     {% endblock scripts %}
-
+    <script src="{% static 'js/checkout.js' %}"></script>
 
 </body>
 

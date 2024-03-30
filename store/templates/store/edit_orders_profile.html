@@ -43,17 +43,28 @@
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        {% for order in orders %}
+                                                        {% for order in orders reversed%}
                                                         <tr>
                                                             <td>{{order.created_at}}</td>
                                                             <td>{{order.tracking_no}}</td>
                                                             <td>{{order.total_price}}</td>
-                                                            <td id="order_status_{{ order.id }}">{{order.status}}</td>
-                                                            <td>
+                                                            <td id="order_status_{{ order.id }}">{{order.get_status_display}}</td>
+                                                            <td class="buttons">
                                                                 <a href="{% url 'orderview' order.tracking_no %}"
-                                                                    class="btn btn-default">View</a>
-                                                                <a class="order_cancel btn btn-danger" pid="{{order.id}}"
-                                                                    >Cancel</a>
+                                                                class="btn btn-default">View</a>
+                                                                
+                                                                {% if order.status < 4 %}
+                                                                <button class="order_cancel btn btn-danger"
+                                                                pid="{{order.id}}">Cancel</button>
+                                                                
+                                                                {% elif order.status == 4 %}
+                                                                <button class="return_order btn btn-primry"
+                                                                pid="{{order.id}}">Return</button>
+                                                                
+                                                                {% elif order.status == 5 or order.status == 6 %}
+                                                                <button class="btn btn-default cancel_return"
+                                                                >---</button>
+                                                                {% endif %}
                                                             </td>
                                                         </tr>
                                                         {% endfor %}

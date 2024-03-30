@@ -103,7 +103,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for order in orders %}
+                            {% for order in orders reversed %}
                             <tr>
                                 <td>
                                     <label class="checkboxs">
@@ -130,15 +130,25 @@
                                
                                 <td>{{ order.tracking_no }}</td>
                                 <td>{{ order.user.username }}</td>
-                                <td><span class="badges bg-lightgreen order-status">{{ order.status }}</span></td>
+                                <td><span class="badges bg-lightgreen order-status">{{ order.get_status_display }}</span></td>
                                 <td>{{ order.total_price }}</td>
-                                <td>
+                                <td class="buttons">
                                     <a class="me-3" href="{% url 'edit_order' order.id %}">
                                         <img src="{% static 'assets/img/icons/edit.svg' %}" alt="img">
                                     </a>
+                                    {% if order.status < 4 %}
                                     <button class="me-3 btn btn-danger btn-sm cancel-order-dash" data-order-id="{{ order.id }}" href="#">
                                         Cancel
                                     </button>
+                                    {% elif order.status == 5 %}
+                                    <button class="me-3 btn btn-default btn-sm cancelled-msg" href="#">
+                                        Cancelled
+                                    </button>
+                                    {% elif order.status == 6 %}
+                                    <button class="me-3 btn btn-default btn-sm" href="#">
+                                        Pick it
+                                    </button>
+                                    {% endif %}
                                     <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
 
                                     <!-- <a class="me-3 confirm-text order_cancel" href="#" pid="{{ order.id }}">

@@ -4,7 +4,7 @@ from django.contrib.auth import authenticate,login,logout
 from django.contrib.auth.decorators import login_required
 from .forms import CreateUserForm, UserUpdateForm, ProfileUpdateForm
 from store.forms import AddressForm
-from store.models import Address, Order, OrderItem
+from store.models import Address, Order, OrderItem, Cart, CartItem
 from accounts.models import Profile
 from django.http import JsonResponse
 # Create your views here.
@@ -25,26 +25,37 @@ def registerpage(request):
     return render(request, 'registration/register.html', context)
 
 def loginpage(request):
-    form = CreateUserForm()
-    if request.method == 'POST':
-            username=request.POST.get('username')
-            password=request.POST.get('password1')
-            user = authenticate(request, username=username, password=password)
-            if user is not None : 
-                login(request, user)
-                return redirect('home')
-            else:
-                messages.error(request, 'Username or Password is incorrect')    
+    if request.user.is_authenticated:
+        return redirect('home')
+    else:
+        form = CreateUserForm()
+        if request.method == 'POST':
+                username=request.POST.get('username')
+                password=request.POST.get('password1')
+                user = authenticate(request, username=username, password=password)
+                if user is not None : 
+                    login(request, user)
+                    return redirect('home')
+                else:
+                    messages.error(request, 'Username or Password is incorrect')    
         
                 
     context = {'form':form}
     return render(request, 'registration/login.html', context)
 
+@login_required(login_url='login')
 def logoutpage(request):
+    try:
+        cart = Cart.objects.get(user=request.user)
+    except Cart.DoesNotExist:
+        pass
+    cart.delete()
+    
     logout(request)
     return redirect('login')
 
 # Profile
+@login_required(login_url='login')
 def profile(request):
     if request.method == 'POST':
         u_form = UserUpdateForm(request.POST, instance=request.user)
@@ -68,6 +79,7 @@ def profile(request):
     return render(request, 'store/user_profile.html', context)
 
 # Address
+@login_required(login_url='login')
 def profile_address(request):
     if request.method == 'POST':
         form = AddressForm(request.POST)
@@ -87,6 +99,7 @@ def profile_address(request):
         context = {'form':form, 'addresses':addresses, 'count':address_count}
         return render(request, 'store/edit_address_profile.html',context)
 
+@login_required(login_url='login')
 def remove_address(request):
     if request.method == 'GET':
         try:
@@ -104,6 +117,7 @@ def remove_address(request):
             return JsonResponse({'error': str(e)}, status=500)
         
 # Orders
+@login_required(login_url='login')
 def profile_orders(request):
     orders = Order.objects.filter(user = request.user)
     context = {'orders':orders,}

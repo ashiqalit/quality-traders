@@ -42,7 +42,4 @@ class OrderForm(ModelForm):
     class Meta:
         model = Order
         fields = ('status',)
-        widgets = {
-
-            
-        }   
+          

@@ -45,8 +45,9 @@
 
 							<!-- Saved addresses are shown here -->
 
-							<button type="button" class="btn btn-primary" data-toggle="modal"
-								data-target="#exampleModal" data-whatever="@getbootstrap">Add a new address</button>
+							<button type="button" class="btn btn-primary address_btn" id="add_address"
+								data-toggle="modal" data-target="#exampleModal" data-whatever="@getbootstrap">Add a new
+								address</button>
 
 							<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog"
 								aria-labelledby="exampleModalLabel">
@@ -119,7 +120,7 @@
 														value="{{address.id}}">
 												</span>
 												<div class="panel panel-default" style="margin-bottom: 0;">
-													<div class="panel-body">
+													<div class="panel-body address-data">
 														<span>{{address.fname}}</span>
 														<span>{{address.lname}}</span>
 														<span>{{address.pincode}}</span>
@@ -133,28 +134,11 @@
 										</div>
 									</div>
 								</div>
-								<div class="panel panel-default">
-									<div class="panel-heading">
-										<h3 class="panel-title">Payment Mode</h3>
-									</div>
-									<div class="panel-body">
-										<div class="col-xs-offset-3 col-xs-6">
-											<div class="input-group">
-												<span class="input-group-addon">
-													<input type="radio" name="payment_mode" value="COD"
-														aria-label="...">
-												</span>
-												<div class="panel panel-default" style="margin-bottom: 0%;">
-													<div class="panel-body">
-														COD
-													</div>
-												</div>
-											</div><!-- /input-group -->
-										</div><!-- /.col-lg-6 -->
-									</div>
-								</div>
-								<button type="submit" class="btn btn-default check_out" style="float: right;">Place
-									Order</button>
+								<button type="submit" name="payment_mode" value="COD"
+									class="btn btn-default check_out pay_btn" id="cod_btn" style="float: right;">Place
+									Order | COD</button>
+								<button class="btn btn-default pay_with_razorpay check_out pay_btn"
+									id="rzp-button1">Razorpay</button>
 							</form>
 						</div>
 					</div>
@@ -191,7 +175,6 @@
 										<p style="font-size: medium;">₹{{cart.product.price}}</p>
 									</td>
 								</tr>
-
 								{% endfor %}
 							</tbody>
 						</table>
@@ -199,206 +182,39 @@
 							<tr>
 								<td></td>
 								<td>
-									<h3>Total:</h3>
+									<h4 class="text-primary">Sub Total:</h4>
 								</td>
 								<td><span>
-										<h3>₹{{total_price}}</h3>
+										<h4 class="text-primary">₹{{total_price}}</h4>
+									</span></td>
+							</tr>
+							<tr>
+								<td></td>
+								<td>
+									<h4 class="text-success">Discount:</h4>
+								</td>
+								<td><span>
+										<h4 class="text-success">₹{{discount_amount}}</h4>
+									</span></td>
+							</tr>
+							<tr>
+								<td></td>
+								<td>
+									<h3 class="text-primary">Grand Total:</h3>
+								</td>
+								<td><span>
+										<h3>₹{{grand_total}}</h3>
 									</span></td>
 							</tr>
 						</table>
-
-
 					</div>
 				</div>
-				<!-- <div class="col-sm-4">
-						<div class="order-message">
-							<p>Shipping Order</p>
-							<textarea name="message"  placeholder="Notes about your order, Special Notes for Delivery" rows="16"></textarea>
-							<label><input type="checkbox"> Shipping to bill address</label>
-						</div>	
-					</div>					 -->
 			</div>
-		</div>
-
-
-		<div class="payment-options">
-			<!-- <span>
-				<label><input type="checkbox"> Direct Bank Transfer</label>
-			</span>
-			<span>
-				<label><input type="checkbox"> Check Payment</label>
-			</span>
-			<span>
-				<label><input type="checkbox"> Paypal</label>
-			</span> -->
-			<!-- <span>
-				<button type="submit" class="btn btn-default check_out">COD | Place Order</button>
-			</span> -->
 		</div>
 	</div>
 </section> <!--/#cart_items-->
 
 
-
-<footer id="footer"><!--Footer-->
-	<div class="footer-top">
-		<div class="container">
-			<div class="row">
-				<div class="col-sm-2">
-					<div class="companyinfo">
-						<h2><span>e</span>-shopper</h2>
-						<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit,sed do eiusmod tempor</p>
-					</div>
-				</div>
-				<div class="col-sm-7">
-					<div class="col-sm-3">
-						<div class="video-gallery text-center">
-							<a href="#">
-								<div class="iframe-img">
-									<img src="images/home/iframe1.png" alt="" />
-								</div>
-								<div class="overlay-icon">
-									<i class="fa fa-play-circle-o"></i>
-								</div>
-							</a>
-							<p>Circle of Hands</p>
-							<h2>24 DEC 2014</h2>
-						</div>
-					</div>
-
-					<div class="col-sm-3">
-						<div class="video-gallery text-center">
-							<a href="#">
-								<div class="iframe-img">
-									<img src="images/home/iframe2.png" alt="" />
-								</div>
-								<div class="overlay-icon">
-									<i class="fa fa-play-circle-o"></i>
-								</div>
-							</a>
-							<p>Circle of Hands</p>
-							<h2>24 DEC 2014</h2>
-						</div>
-					</div>
-
-					<div class="col-sm-3">
-						<div class="video-gallery text-center">
-							<a href="#">
-								<div class="iframe-img">
-									<img src="images/home/iframe3.png" alt="" />
-								</div>
-								<div class="overlay-icon">
-									<i class="fa fa-play-circle-o"></i>
-								</div>
-							</a>
-							<p>Circle of Hands</p>
-							<h2>24 DEC 2014</h2>
-						</div>
-					</div>
-
-					<div class="col-sm-3">
-						<div class="video-gallery text-center">
-							<a href="#">
-								<div class="iframe-img">
-									<img src="images/home/iframe4.png" alt="" />
-								</div>
-								<div class="overlay-icon">
-									<i class="fa fa-play-circle-o"></i>
-								</div>
-							</a>
-							<p>Circle of Hands</p>
-							<h2>24 DEC 2014</h2>
-						</div>
-					</div>
-				</div>
-				<div class="col-sm-3">
-					<div class="address">
-						<img src="images/home/map.png" alt="" />
-						<p>505 S Atlantic Ave Virginia Beach, VA(Virginia)</p>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-
-	<div class="footer-widget">
-		<div class="container">
-			<div class="row">
-				<div class="col-sm-2">
-					<div class="single-widget">
-						<h2>Service</h2>
-						<ul class="nav nav-pills nav-stacked">
-							<li><a href="">Online Help</a></li>
-							<li><a href="">Contact Us</a></li>
-							<li><a href="">Order Status</a></li>
-							<li><a href="">Change Location</a></li>
-							<li><a href="">FAQ’s</a></li>
-						</ul>
-					</div>
-				</div>
-				<div class="col-sm-2">
-					<div class="single-widget">
-						<h2>Quock Shop</h2>
-						<ul class="nav nav-pills nav-stacked">
-							<li><a href="">T-Shirt</a></li>
-							<li><a href="">Mens</a></li>
-							<li><a href="">Womens</a></li>
-							<li><a href="">Gift Cards</a></li>
-							<li><a href="">Shoes</a></li>
-						</ul>
-					</div>
-				</div>
-				<div class="col-sm-2">
-					<div class="single-widget">
-						<h2>Policies</h2>
-						<ul class="nav nav-pills nav-stacked">
-							<li><a href="">Terms of Use</a></li>
-							<li><a href="">Privecy Policy</a></li>
-							<li><a href="">Refund Policy</a></li>
-							<li><a href="">Billing System</a></li>
-							<li><a href="">Ticket System</a></li>
-						</ul>
-					</div>
-				</div>
-				<div class="col-sm-2">
-					<div class="single-widget">
-						<h2>About Shopper</h2>
-						<ul class="nav nav-pills nav-stacked">
-							<li><a href="">Company Information</a></li>
-							<li><a href="">Careers</a></li>
-							<li><a href="">Store Location</a></li>
-							<li><a href="">Affillate Program</a></li>
-							<li><a href="">Copyright</a></li>
-						</ul>
-					</div>
-				</div>
-				<div class="col-sm-3 col-sm-offset-1">
-					<div class="single-widget">
-						<h2>About Shopper</h2>
-						<form action="#" class="searchform">
-							<input type="text" placeholder="Your email address" />
-							<button type="submit" class="btn btn-default"><i
-									class="fa fa-arrow-circle-o-right"></i></button>
-							<p>Get the most recent updates from <br />our site and be updated your self...</p>
-						</form>
-					</div>
-				</div>
-
-			</div>
-		</div>
-	</div>
-
-	<div class="footer-bottom">
-		<div class="container">
-			<div class="row">
-				<p class="pull-left">Copyright © 2013 E-SHOPPER Inc. All rights reserved.</p>
-				<p class="pull-right">Designed by <span><a target="_blank"
-							href="http://www.themeum.com">Themeum</a></span></p>
-			</div>
-		</div>
-	</div>
-
-</footer><!--/Footer-->
 
 {% endblock content %}
 
@@ -408,4 +224,5 @@
 	alertify.error('{{form.errors}}');
 </script>
 {% endif %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 {% endblock scripts %}

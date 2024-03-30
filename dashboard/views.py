@@ -7,10 +7,12 @@ from .filters import UserFilter,CategoryFilter,ProductFilter, SubCategoryFilter,
 from .forms import CategoryForm, ProductForm, SubCategoryForm, BrandForm, OrderForm
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
 from django.core.files.storage import FileSystemStorage
 # from .forms import UserForm
 
 # Create your views here.
+@login_required(login_url="dashboard_login")
 def dashboard(request):
     if 'username' not in request.session:
         return redirect('dashboard_login')    
@@ -39,6 +41,7 @@ def adminLogin(request):
     else:
         return render(request, 'dashboard/auth/admin_signin.html')
 
+@login_required(login_url="dashboard_login")
 def logout(request):
     if 'username' in request.session:
         request.session.flush()
@@ -46,7 +49,7 @@ def logout(request):
     return redirect('dashboard_login')
 
 # user............................................................
-
+@login_required(login_url="dashboard_login")
 def list_user(request):
     users = User.objects.all()
     _filter = UserFilter(request.GET, queryset=users)
@@ -54,7 +57,7 @@ def list_user(request):
     context = {'all_users':filtered_users}
     return render(request, 'dashboard/other/userlist.html', context)
 
-
+@login_required(login_url="dashboard_login")
 def update_user_status(request):
     if request.method == 'POST':
         try:
@@ -72,7 +75,7 @@ def update_user_status(request):
     return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
 
 # categories.............................................................................
-
+@login_required(login_url="dashboard_login")
 def list_categories(request):
     categories = Category.objects.all()
     myFilter = CategoryFilter(request.GET, queryset=categories)
@@ -80,6 +83,7 @@ def list_categories(request):
     context = {'all_categories' : filterd_categories, 'myFilter' : myFilter}
     return render(request, 'dashboard/other/categorylist.html', context)
 
+@login_required(login_url="dashboard_login")
 def create_categories(request):  
     if request.method == 'POST':
         form = CategoryForm(request.POST)
@@ -93,6 +97,7 @@ def create_categories(request):
         form = CategoryForm()
         return render(request, 'dashboard/other/addcategory.html', {'form':form})
 
+@login_required(login_url="dashboard_login")
 def update_category(request, pk):
     category = Category.objects.get(id=pk)
     form = CategoryForm(instance=category)
@@ -109,6 +114,7 @@ def update_category(request, pk):
         }    
         return render(request, 'dashboard/other/editcategory.html', context)
 
+@login_required(login_url="dashboard_login")
 def drop_category(request):
     if request.method == 'POST':
         category_id = request.POST.get('categoryId')
@@ -119,7 +125,7 @@ def drop_category(request):
     return JsonResponse({'success':False})
 
 # products.................................................................................
-
+@login_required(login_url="dashboard_login")
 def list_products(request):
     products = Product.objects.all()
     myFilter = ProductFilter(request.GET, queryset=products)
@@ -130,6 +136,7 @@ def list_products(request):
     context = {'all_products' : filterd_products, 'myFilter' : myFilter}
     return render(request, 'dashboard/other/productlist.html', context)
 
+@login_required(login_url="dashboard_login")
 def create_products(request):  
     # product - request.model.product
     if request.method == 'POST':
@@ -143,7 +150,8 @@ def create_products(request):
     
     form = ProductForm()
     return render(request, 'dashboard/other/addproduct.html', {'form':form})
-    
+
+@login_required(login_url="dashboard_login")   
 def edit_product(request, pk):
     product = Product.objects.get(id=pk)
     form = ProductForm(instance=product)
@@ -156,6 +164,7 @@ def edit_product(request, pk):
                'pk': product.pk,}
     return render(request, 'dashboard/other/editproduct.html', context)
 
+@login_required(login_url="dashboard_login")
 def drop_product(request):
     if request.method == 'POST':
         product_id = request.POST.get('productId')
@@ -166,7 +175,7 @@ def drop_product(request):
     return JsonResponse({'success':False})
 
 # subcategories.............................................................
-
+@login_required(login_url="dashboard_login")
 def list_subcategories(request):
     subcategories = Sub_category.objects.all()
     myFilter = SubCategoryFilter(request.GET, queryset=subcategories)
@@ -174,6 +183,7 @@ def list_subcategories(request):
     context = {'all_categories' : filterd_categories, 'myFilter' : myFilter}
     return render(request, 'dashboard/other/subcategorylist.html', context)
 
+@login_required(login_url="dashboard_login")
 def create_subcategories(request):  
     if request.method == 'POST':
         form = SubCategoryForm(request.POST)
@@ -187,6 +197,7 @@ def create_subcategories(request):
         form = SubCategoryForm()
         return render(request, 'dashboard/other/subaddcategory.html', {'form':form})
 
+@login_required(login_url="dashboard_login")
 def update_subcategory(request, pk):
     subcategory = Sub_category.objects.get(id=pk)
     form = SubCategoryForm(instance=subcategory)
@@ -203,6 +214,7 @@ def update_subcategory(request, pk):
         }    
         return render(request, 'dashboard/other/editsubcategory.html', context)
 
+@login_required(login_url="dashboard_login")
 def drop_subcategory(request):
     if request.method == 'POST':
         subcategory_id = request.POST.get('subcategoryId')
@@ -213,7 +225,7 @@ def drop_subcategory(request):
     return JsonResponse({'success':False})
 
 # brands.............................................................
-
+@login_required(login_url="dashboard_login")
 def list_brands(request):
     brands = Brand.objects.all()
     myFilter = BrandFilter(request.GET, queryset=brands)
@@ -221,6 +233,7 @@ def list_brands(request):
     context = {'all_brands' : filterd_brands, 'myFilter' : myFilter}
     return render(request, 'dashboard/other/brandlist.html', context)
 
+@login_required(login_url="dashboard_login")
 def create_brands(request):  
     if request.method == 'POST':
         form = BrandForm(request.POST, request.FILES)
@@ -234,6 +247,7 @@ def create_brands(request):
         form = BrandForm()
         return render(request, 'dashboard/other/addbrand.html', {'form':form})
 
+@login_required(login_url="dashboard_login")
 def update_brand(request, pk):
     brand = Brand.objects.get(id=pk)
     form = BrandForm(instance=brand)
@@ -250,6 +264,7 @@ def update_brand(request, pk):
         }    
         return render(request, 'dashboard/other/editbrand.html', context)
 
+@login_required(login_url="dashboard_login")
 def drop_brand(request):
     if request.method == 'POST':
         brand_id = request.POST.get('brandId')
@@ -260,33 +275,38 @@ def drop_brand(request):
     return JsonResponse({'success':False})
 
 # orders...........................................................................
-
+@login_required(login_url="dashboard_login")
 def list_orders(request):
     orders = Order.objects.all()
     context = {'orders':orders}
     return render(request, 'dashboard/other/orderlist.html', context)
 
+@login_required(login_url="dashboard_login")
 def edit_order(request, pk):
     order = Order.objects.get(id=pk)
-    form = OrderForm(instance=order)
+    # form = OrderForm(instance=order)
     if request.method == 'POST':
         form = OrderForm(request.POST, instance=order)
         if form.is_valid():
             form.save()
             return redirect('read_orders')
+        else:
+            messages.info(request, 'Form invalid')
     else:
-        context = {
-            'order':order,
-            'form':form,
-            'pk':order.pk,
-        }
+        form = OrderForm(instance=order)
+    context = {
+        'order':order,
+        'form':form,
+        'pk':order.pk,
+    }
     return render(request, 'dashboard/other/editorder.html', context)
 
+@login_required(login_url="dashboard_login")
 def cancel_order(request):
     if request.method == 'POST':
         order_id = request.POST.get('order_id')
         order = get_object_or_404(Order, id=order_id)
-        order.status = 'Cancelled'
+        order.status = 5
         order.save()
         return JsonResponse({'success':True})
     return JsonResponse({'success':False})

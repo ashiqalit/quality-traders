@@ -11,104 +11,165 @@
 				<li class="active">Shopping Cart</li>
 			</ol>
 		</div>
-		<div class="table-responsive cart_info">
-
-			<table class="table table-condensed ">
-				<thead>
-					<tr class="cart_menu">
-						<td class="image">Item</td>
-						<td class="description">Name</td>
-						<td class="price">Price</td>
-						<td class="quantity">Quantity</td>
-						<!-- <td class="total">Total</td> -->
-						<td></td>
-					</tr>
-				</thead>
-				<tbody>
-					{% for cart in carts %}
-					<tr class="cart-item">
-						{% csrf_token %}
-						<td class="cart_product" style="margin-right: 1px;">
-							<a href=""><img src="{{cart.product.image.url}}" alt=""
-									style="width: 150px; height:auto"></a>
-						</td>
-
-						<td class="cart_description">
-							<h4><a href="">{{cart.product.name}}</a></h4>
-							<!-- <p>Web ID: 1089772</p> -->
-						</td>
-
-						<td class="cart_price">
-							<p>₹{{cart.product.price}}</p>
-						</td>
-
-						<td class="cart_quantity">
-
-							<div class="cart_quantity_button">
-								<a href="" class="cart_quantity_up" pid="{{cart.product.id}}">
-									<i class="ri-add-line"></i>
-								</a>
-								<span id="quantity" class="cart_quantity_input" name="quantity"
-									style="padding:0px 10px;">{{cart.product_qty}}</span>
-								<a href="" class="cart_quantity_down" pid="{{cart.product.id}}">
-									<i class="ri-subtract-fill"></i>
-								</a>
+		{% if cart %}
+		<div class="table-responsive cart_info row">
+			{% if cart_items %}
+			<div class="col-sm-7">
+			{% else %}
+			<div class="col-sm-12">
+			{% endif %}
+				<table class="table table-condensed ">
+					<thead>
+						<tr class="cart_menu">
+							<td class="image">Item</td>
+							<td class="description">Name</td>
+							<td class="price">Price</td>
+							<td class="quantity">Quantity</td>
+							<!-- <td class="total">Total</td> -->
+							<td></td>
+							<td>
+							</td>
+						</tr>
+					</thead>
+					<tbody>
+						{% for item in cart_items %}
+						<tr class="cart-item">
+							{% csrf_token %}
+							<td class="cart_product" style="margin-right: 1px;">
+								<a href=""><img src="{{item.product.image.url}}" alt=""
+										style="width: 60px; height:auto"></a>
+							</td>
+	
+							<td class="cart_description">
+								<h4><a href="">{{item.product.name}}</a></h4>
+								<!-- <p>Web ID: 1089772</p> -->
+							</td>
+	
+							<td class="cart_price">
+								<p>₹{{item.product.price}}</p>
+							</td>
+	
+							<td class="cart_quantity">
+	
+								<div class="cart_quantity_button">
+									<a href="" class="cart_quantity_up" pid="{{item.product.id}}">
+										<i class="ri-add-line"></i>
+									</a>
+									<span id="quantity" class="cart_quantity_input" name="quantity"
+										style="padding:0px 10px;">{{item.product_qty}}</span>
+									<a href="" class="cart_quantity_down" pid="{{item.product.id}}">
+										<i class="ri-subtract-fill"></i>
+									</a>
+								</div>
+	
+							</td>
+	
+							<!-- <td class="cart_total">
+								<p class="cart_total_price" id="amount"></p>
+							</td> -->
+	
+							<td class="cart_delete">
+								<a class="cart_quantity_delete" pid="{{item.product.id}}" href="#"><i
+										class="fa fa-times"></i></a>
+							</td>
+							<td></td>
+	
+						</tr>
+						{% endfor %}
+						{% if cart_items %}
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>
+								<form method="post">
+									{% csrf_token %}
+									<div class="form-group">
+										<label class="coupon-head">Have Coupon?</label>
+										<div class="input-group">
+											<input type="text" name="code" id="couponCode" class="form-control blue-border"
+												placeholder="Coupon code"
+												value="{{ cart.coupon.coupon_code | default:'' }}">
+											<span class="input-group-btn">
+												<button class="btn btn-primry coupon_code" type="submit">Apply</button>
+											</span>
+										</div>
+									</div>
+								</form>
+								<form action="{% url 'remove_coupon' %}" method="post">
+									{% csrf_token %}
+									<ul class="nav nav-pills">
+										{% for coupon in cart.coupons.all %}
+										<li>
+											<input type="hidden" name="coupon_id" value="{{ coupon.id }}">
+											<button href="{% url 'remove_coupon' %}" class="btn btn-success">{{ coupon.coupon_code }}</button>
+		
+										</li>
+										{% endfor %}
+									</ul>
+								</form>
+							</td>
+							<td></td>
+							<td></td>
+						</tr>
+						{% else %}
+						<tr>
+							<td colspan="5" style="text-align: center;">
+								<h3>Your cart is empty.</h3>
+							</td>
+						</tr>
+						{% endif %}
+					</tbody>
+					<!-- <tfoot>
+						<tr>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>
+								<h3>Total Price:</h3>
+							</td>
+							<td>
+							</td>
+						</tr>
+					</tfoot> -->
+	
+				</table>
+			</div>
+			{% if cart_items %}
+			<div class="col-sm-5">
+				<section id="do_action">
+					<div class="container summary">
+							<div class="total_area">
+								<ul>
+									<li>Cart Sub Total <span>₹{{ total_price }}</span></li>
+									<li>Coupon Discount <span>₹{{ discount_amount }}</span></li>
+									<li>
+										<h4>Total<span class="grand_total" id="amount">₹{{ grand_total }}</span></h4>
+									</li>
+									<a href="{% url 'checkout' %}" class="btn btn-default check_out">Check out</a>
+								</ul>
+								<!-- <a class="btn btn-default update" href="">Update</a> -->
+								<!-- <a class="btn btn-default check_out" href="">COD | Place Order</a> -->
 							</div>
-
-						</td>
-
-						<!-- <td class="cart_total">
-							<p class="cart_total_price" id="amount"></p>
-						</td> -->
-
-						<td class="cart_delete">
-							<a class="cart_quantity_delete" pid="{{cart.product.id}}" href="#"><i class="fa fa-times"></i></a>
-						</td>
-
-					</tr>
-					{% endfor %}
-				</tbody>
-				<!-- <tfoot>
-					<tr>
-						<td></td>
-						<td></td>
-						<td></td>
-						<td></td>
-						<td>
-							<h3>Total Price:</h3>
-						</td>
-						<td>
-						</td>
-					</tr>
-				</tfoot> -->
-
-			</table>
+						</div>
+					</section>
+				</div>
+			{% endif %}
+			
+			
 		</div>
+		{% else %}
+		<p class="text-center">Cart empty</p>
+		{% endif %}
+		<!-- <table class="table">
+			<tbody>
+				
+			</tbody>
+			
+		</table> -->
 	</div>
 </section> <!--/#cart_items-->
 
-<section id="do_action">
-	<div class="container">
-		<!-- <div class="heading">
-			<h3>What would you like to do next?</h3>
-			<p>Choose if you have a discount code or reward points you want to use or would like to estimate your
-				delivery cost.</p>
-		</div> -->
-		<div class="row">
-			
-			<div class="col-sm-6" style="float: right;">
-				<div class="total_area">
-					<ul>
-						<!-- <li>Cart Sub Total <span></span></li> -->
-						<!-- <li>Shipping Cost <span>0</span></li> -->
-						<li><h4>Total<span class="grand_total" id="amount">₹{{amount}}</span></h4></li>
-						<a href="{% url 'checkout' %}" class="btn btn-default check_out">Check out</a>
-					</ul>
-					<!-- <a class="btn btn-default update" href="">Update</a> -->
-					<!-- <a class="btn btn-default check_out" href="">COD | Place Order</a> -->
-				</div>
-			</div>
-		</div>
-	</div>
-</section>
+
 {% endblock content %}

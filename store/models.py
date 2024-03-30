@@ -64,17 +64,53 @@ class Product(models.Model):
             "pk" : self.pk
         })
 
-
 class Cart(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    coupons = models.ManyToManyField("store.Coupon",blank=True)
+    created_date = models.DateTimeField(auto_now_add=True)
+    total = models.IntegerField(default=0)
+    saved = models.IntegerField(default=0)
+    
+    @property
+    def total_cost(self):
+        total_price = sum(cart_item.product.price for cart_item in self.cartitem_set.all())
+        discount_amount = 0
+        if self.coupons.all() is not None:
+            for coupon in self.coupons.all():
+                if coupon.type == 'Percentage':
+                    discount_amount += total_price * coupon.discount / 100
+                else:
+                    discount_amount += coupon.discount
+
+            grand_total = total_price - discount_amount
+            return total_price, discount_amount, grand_total
+        else:
+            grand_total = total_price - discount_amount
+            return total_price, discount_amount, grand_total
+
+class CartItem(models.Model):
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     product_qty = models.PositiveIntegerField(default=1)
-    created_date = models.DateTimeField(auto_now_add=True)
-
     
     @property
     def total_cost(self):
         return self.product_qty * self.product.price
+
+    def __str__(self):
+        return self.product
+
+class Coupon(models.Model):
+    coupon_code = models.CharField(max_length=10)
+    active = models.BooleanField(default=False)
+    type = models.CharField(max_length=100, default="Percentage")
+    discount = models.IntegerField(default=100)
+    date = models.DateTimeField(auto_now_add=True)
+    valid_from = models.DateTimeField()
+    valid_to = models.DateTimeField()
+
+    def __str__(self):
+        return self.coupon_code
 
 class Address(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -93,16 +129,18 @@ class Address(models.Model):
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     total_price = models.FloatField(null=False)
+    discount_price = models.FloatField(default=0)
     payment_mode = models.CharField(max_length=150, null=False)
     payment_id = models.CharField(max_length=250, null=True)
     order_status = (
-        ('Pending','Pending'),
-        ('Cancelled','Cancelled'),
-        ('Shipped','Shipped'),
-        ('Out for delivery','Out for delivery'),
-        ('Completed','Completed'),
+        (1,'Pending'),
+        (2,'Dispatched'),
+        (3,'Out for delivery'),
+        (4,'Delivered'),
+        (5,'Cancel'),
+        (6,'Return'),
     )
-    status = models.CharField(max_length=150, choices=order_status, default='Pending')
+    status = models.IntegerField(choices=order_status, default=1)
     message = models.TextField(null=True)
     tracking_no = models.CharField(max_length=250, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -117,6 +155,10 @@ class Order(models.Model):
             'id': self.id,
             'status': self.status,
         }
+    def grand_total(self):
+        grand_total = 0
+        grand_total = self.total_price - self.discount_price 
+        return grand_total
     
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
@@ -129,4 +171,4 @@ class OrderItem(models.Model):
 
 
 
-
+    

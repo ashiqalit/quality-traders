@@ -1779,6 +1779,8 @@ h2.title {
   margin-top: 18px;
   border: none;
   padding: 5px 15px;
+  transition: background-color 0.3s ease, color 0.3s ease; /* Smooth transition for background color and text color */
+  border: 1px solid transparent; 
 }
 .update{
     margin-left: 40px;
@@ -1786,6 +1788,7 @@ h2.title {
 
 .check_out {
   margin-left: 20px
+
 }
 
 

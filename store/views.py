@@ -1,31 +1,45 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.contrib import messages
-from store.models import Category, Product, Cart, Order, OrderItem, Address
+from store.models import Category, Brand, Product, Cart, CartItem, Order, OrderItem, Address, Coupon
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse,HttpResponse,HttpResponseForbidden
 import random
 from .forms import AddressForm
+from django.core.serializers.json import DjangoJSONEncoder
+from django.db.models import Sum
+from .filters import ProductFilter
+from .context_processors import filter_context
 
 
 # Create your views here.
 
-# @login_required(login_url="login")
+@login_required(login_url="login")
 def home(request):
     category = Category.objects.all()
+    brands = Brand.objects.all()
+    
     
     categoryId = request.GET.get('category')
+    brandId = request.GET.get('brand')
     if categoryId:
         product = Product.objects.filter(sub_category = categoryId).order_by('-id')
+    elif brandId:
+        product = Product.objects.filter(brand = brandId).order_by('-id')
     else:
-        product = Product.objects.all()
+        product = filter_context(request)
+        filtered_products = product.get('myfilter').qs
     
     context = {
         'category':category,
-        'product':product
+        'brands':brands,
+        'product':filtered_products,
+
     }
     return render(request, 'store/index.html', context)
 
+@login_required(login_url="login")
 def product_detail(request, id):
     category = Category.objects.all()
     product = Product.objects.filter(id = id).first()
@@ -35,79 +49,166 @@ def product_detail(request, id):
     }
     return render(request, 'store/product-details.html', context)
 
-# navbar
-@login_required(login_url="login")
-def navbar(request):
-    user = request.user
-    carts = Cart.objects.filter(user=user)
-    cart_count = 0
-    for cart in carts:
-        cart_count += cart.product_qty
-    context = {
-        'cart_count':cart_count,
-    }
-    return render(request, 'store/includes/navbar.html',context)
-
 # cart
+def update_cart_counter(cart): #count the cart_items
+    all_cart_items = cart.cartitem_set.all()
+    cart_counter = sum(item.product_qty for item in all_cart_items)
+    return cart_counter
+
 @login_required(login_url="login")
 def add_to_cart(request):
     if request.method == 'POST':
         user = request.user
         product_id = request.POST.get('product_id')
-        product = Product.objects.get(id=product_id)
+        product = Product.objects.get(id=product_id) #get the product
         qty = product.quantity
-        cart = Cart.objects.filter(user=user,product_id=product_id)
-        
-        if not cart:
-            if product.quantity > 0:
-                    try:
-                        Cart(user=user, product=product).save()
-                        response_data = {'success': True, 'message': 'Product added to cart'}
-                    except Product.DoesNotExist:
-                        response_data = {'success': False, 'message': 'Product not found'}
-                    except Exception as e:
-                        response_data = {'success': False, 'message': 'Error adding product: ' + str(e)}
-                    return JsonResponse(response_data)
-            else:
-                    response_data = {'success': False, 'message': 'Product out of stock'}
-                    return JsonResponse(response_data)        
-        
-        else:
-            cart = Cart.objects.get(user=user,product_id=product_id)
-            product = Product.objects.get(id=product_id)
-            qty = product.quantity
-
-            if cart.product_qty < qty:
-                cart.product_qty += 1
-                # cart.product.quantity -= 1
-                cart.save()
-                response_data = {'success': True, 'message': 'Product added to cart'}
-                return JsonResponse(response_data)
-            else:
-                response_data = {'success': False, 'message': "Only "+ str(qty) +" quantity available"}
-                return JsonResponse(response_data)
         
 
-    else:
-        return HttpResponseForbidden('Invalid request method')
+        try:
+            cart = Cart.objects.get(user=user) #get existing cart
+        except Cart.DoesNotExist:
+            cart = Cart.objects.create(user=user) #if not create new cart
+        cart.save()
+        
+        try:
+            cart_item = CartItem.objects.get(product=product, cart=cart) #get existing cart_item
+            if cart_item.product_qty < qty: #if cart qty less the actual qty
+                cart_item.product_qty += 1 #increment cart
+                cart_item.save()
+                cart_counter = update_cart_counter(cart)
+                response_data = {'success': True, 'message': 'Product added to cart', 'cart_counter':cart_counter}
+                return JsonResponse(response_data)
+            else:
+                cart_counter = update_cart_counter(cart)
+                response_data = {'success': False, 'message': "Only "+ str(qty) +" quantity available", 'cart_counter':cart_counter}
+                return JsonResponse(response_data)
+
+        except CartItem.DoesNotExist:
+            if qty > 0: #if not out of stock
+                cart_item = CartItem.objects.create(
+                    product = product,
+                    product_qty = 1,
+                    cart = cart
+                )
+                cart_counter = update_cart_counter(cart)
+                response_data = {'success': True, 'message': 'Product added to cart', 'cart_counter':cart_counter}
+                cart_item.save()
+                return JsonResponse(response_data)
+            else:
+                cart_counter = update_cart_counter(cart)
+                response_data = {'success': False, 'message': 'Product out of stock', 'cart_counter':cart_counter}
+                return JsonResponse(response_data)
+        
+
+# def apply_coupon(request):
+#     if request.method == 'POST':
+#         code = request.POST.get("code")
+#         print("Code:",code)
+#         cart = Cart.objects.get(user=request.user)
+        
+#         if cart:
+#             coupon = Coupon.objects.filter(coupon_code__iexact=code, active=True).first()
+#             if coupon:
+#                 for cart_coupon in cart.coupons.all():
+#                     if cart_coupon == coupon:
+#                         messages.warning(request, "Coupon already activated")
+#                         print("Coupon already activated")
+#                         return redirect('showcart')
+
+#                 cart.coupons.add(coupon)
+#                 total_price = request.session.get('total_price')
+#                 if coupon.type == "Percentage":
+#                     discount = total_price * coupon.discount/100
+#                 else:
+#                     discount = coupon.discount
+                
+#                 total_price -= discount
+#                 request.session['total_price'] = total_price
+                
+#                 messages.success(request, "Coupon Activated")                
+#                 return redirect('showcart')
+#             else:
+#                 print("coupon does not exists")
+#                 messages.warning(request, "Coupon does not exists")
+#                 return redirect('showcart')
+
+#         else:
+#             messages.error(request, "An error occurred. Please try again later.")
+#             return redirect('/')
+#     return redirect(reverse('showcart'), {'cart':cart, 'coupon':coupon})
+            
 
 @login_required(login_url="login")
 def show_cart(request):
     user = request.user
-    carts = Cart.objects.filter(user=user)
-   
-    # Following code is to find the total cost in cart
-    amount = 0.0
-    for cart in carts:
-        total_price = cart.product_qty * cart.product.price
-        amount += total_price
-        
+    try:
+        cart = Cart.objects.get(user=user)
+    except Cart.DoesNotExist:
+        cart = Cart.objects.create(user=user) 
+    
+    cart_items = []
+    try:
+        cart_items = cart.cartitem_set.all()
+    except AttributeError:
+        pass
+    
+
+    if request.method == 'POST':
+        code = request.POST.get("code")
+        print("Code:",code)
+        cart = Cart.objects.get(user=request.user)
+
+        if cart:
+            coupon = Coupon.objects.filter(coupon_code__iexact=code, active=True).first()
+            if coupon:
+                for cart_coupon in cart.coupons.all():
+                    if cart_coupon == coupon:
+                        messages.warning(request, "Coupon already activated")
+                        print("Coupon already activated")
+                        return redirect('showcart') 
+                cart.coupons.add(coupon)
+                messages.success(request, "Coupon Activated")                
+                return redirect('showcart')
+            else:
+                print("coupon does not exists")
+                messages.warning(request, "Coupon does not exists")
+                return redirect('showcart')
+
+    total_price, discount_amount, grand_total = cart.total_cost
     context = {
-        'carts':carts,
-        'amount':amount,
+        'cart':cart,
+        'cart_items':cart_items,
+        'grand_total': grand_total,
+        'total_price': total_price,
+        'discount_amount': discount_amount,
         }
+    
     return render(request, 'store/cart_detail.html', context)
 
+@login_required(login_url="login")
+def remove_coupon(request):
+    if request.method == 'POST': 
+        cart = Cart.objects.get(user = request.user)
+        total_price, discount_amount, grand_total = cart.total_cost
+        coupon_id = request.POST.get('coupon_id')
+        print(coupon_id)
+
+        if cart and coupon_id:
+            try:
+                coupon = Coupon.objects.get(pk=coupon_id)
+            except Coupon.DoesNotExist:
+                messages.error(request, 'Coupon does not exist.')
+                return redirect('showcart')
+
+            cart.coupons.remove(coupon)
+           
+            cart.save()
+            messages.success(request, 'Coupon removed successfully')
+        else:
+            messages.error(request, 'Invalid request')
+
+        return redirect('showcart')
+    
 
 @login_required(login_url="login")
 def plus_cart(request):
@@ -115,62 +216,82 @@ def plus_cart(request):
         product_id = request.GET['product_id']
         product = Product.objects.get(id=product_id)
         qty = product.quantity
-        cart = Cart.objects.get(product=product_id, user=request.user)
-        if cart.product_qty < qty :
-                
-                cart.product_qty += 1
-                # cart.product.quantity -= 1
-                cart.save()
-
-                amount = 0.0
-                cart_count = 0
-                cart_product = [p for p in Cart.objects.all() if p.user == request.user]
-                for p in cart_product:
-                    amt = (p.product_qty * p.product.price)
-                    amount += amt
-                    cart_count += p.product_qty
-                data = {
-                    'quantity':cart.product_qty,
-                    'amount':amount,
-                    'cart_count':cart_count,
-                }
-                return JsonResponse(data)
+        cart = Cart.objects.get(user=request.user)
+        cart_items = cart.cartitem_set.filter(product=product).first()
         
+        if cart_items:
+                if cart_items.product_qty < qty:
+                    cart_items.product_qty += 1
+                    cart_items.save()
+                    amount = 0.0
+                    cart_count = 0
+                    cart_product = [p for p in CartItem.objects.all() if p.cart.user == request.user]
+                    for p in cart_product:
+                        amt = (p.product_qty * p.product.price)
+                        amount += amt
+                        cart_count += p.product_qty
+                    data = {
+                        'success': True,
+                        'quantity':cart_items.product_qty,
+                        'amount':amount,
+                        'cart_count':cart_count,
+                    }
+                    return JsonResponse(data)
+                else:
+                    data = {'success': False, 'message': "Your limit reached"}
+                    return JsonResponse(data)
+        
+    else:
+        return JsonResponse({'error': 'Invalid request method'})        
 
 @login_required(login_url="login")
 def minus_cart(request):
     if request.method == 'GET':
         product_id = request.GET['product_id']
-        cart = Cart.objects.get(product=product_id, user=request.user)
+        product = Product.objects.get(id=product_id)
+        cart = Cart.objects.get(user=request.user)
+        cart_items = cart.cartitem_set.filter(product=product).first()
+        
+        if cart_items:
+                if cart_items.product_qty > 1:
+                    
+                    cart_items.product_qty -= 1
+                    cart_items.save()
 
-        cart.product_qty -= 1
-        # cart.product.quantity += 1
-        cart.save()
+                    amount = 0.0
+                    cart_count = 0
+                    cart_product = [p for p in CartItem.objects.all() if p.cart.user == request.user]
+                    for p in cart_product:
+                        amt = (p.product_qty * p.product.price)
+                        amount += amt
+                        cart_count += p.product_qty
+                    data = {
+                        'success': True,
+                        'quantity':cart_items.product_qty,
+                        'amount':amount,
+                        'cart_count':cart_count,
+                    }
+                    return JsonResponse(data)
+                else:
+                    data = {'success': False, 'message': "Your limit reached"}
+                    return JsonResponse(data)
+        
+    else:
+        return JsonResponse({'error': 'Invalid request method'})        
 
-        amount = 0.0
-        cart_count = 0
-        cart_product = [p for p in Cart.objects.all() if p.user == request.user]
-        for p in cart_product:
-            amt = (p.product_qty * p.product.price)
-            amount += amt
-            cart_count += p.product_qty
-        data = {
-            'quantity':cart.product_qty,
-            'amount':amount,
-            'cart_count':cart_count,
-        }
-        return JsonResponse(data)
 
 @login_required(login_url="login")
 def remove_cart(request):
     if request.method == 'GET':
         product_id = request.GET['product_id']
-        cart = Cart.objects.get(product=product_id, user=request.user)
-        cart.delete()
+        product = Product.objects.get(id=product_id)
+        cart = Cart.objects.get(user=request.user)
+        cart_item = cart.cartitem_set.filter(product=product).first()
+        cart_item.delete()
 
         amount = 0.0
         cart_count = 0
-        cart_product = [p for p in Cart.objects.all() if p.user == request.user]
+        cart_product = [p for p in CartItem.objects.all() if p.cart.user == request.user]
         for p in cart_product:
             amt = (p.product_qty * p.product.price)
             amount += amt
@@ -180,8 +301,17 @@ def remove_cart(request):
             'cart_count':cart_count,
         }
         return JsonResponse(data)
+
 # checkout
+@login_required(login_url="login")
 def checkout(request):
+    cart = Cart.objects.get(user=request.user)
+    cart_items = cart.cartitem_set.all()
+    total_price, discount_amount, grand_total = cart.total_cost #fetching from model defenition total cost
+
+    if not cart_items:  # If cart is empty, redirect to cart page
+        return redirect('showcart')
+
     if request.method == 'POST':
         form = AddressForm(request.POST)
         if form.is_valid():
@@ -192,16 +322,14 @@ def checkout(request):
             return redirect('checkout')
         selected_address_id = request.POST.get('selected_address')
         payment_mode = request.POST.get('payment_mode')
-        if selected_address_id and payment_mode:
+        payment_id = request.POST.get('payment_id')
+        
+        if selected_address_id and payment_mode and cart_items:
             selected_address = Address.objects.get(pk=selected_address_id)
             neworder = Order(user=request.user, payment_mode=payment_mode, address=selected_address)
-
-            # cart's total price
-            cartitems = Cart.objects.filter(user=request.user)
-            total_price = 0
-            for item in cartitems:
-                total_price += item.product.price * item.product_qty
+            grand_total = neworder.grand_total
             neworder.total_price = total_price
+            neworder.discount_price = discount_amount
             request.session['total_price'] = neworder.total_price
 
             # tracking number
@@ -209,10 +337,11 @@ def checkout(request):
             while Order.objects.filter(tracking_no = track_no) is None:
                 track_no = 'qt' + str(random.randint(1111111, 9999999))
             neworder.tracking_no = track_no
+            neworder.payment_id = payment_id
             neworder.save()
             
 
-            neworder_items = Cart.objects.filter(user = request.user)
+            neworder_items = cart_items
             for item in neworder_items:
                 OrderItem.objects.create(
                     order = neworder,
@@ -226,41 +355,90 @@ def checkout(request):
                 orderproduct.save()
                
             # clear the cart
-            Cart.objects.filter(user=request.user).delete()
+            for item in cart_items: item.delete()
+            cart.delete()
+
+            payMode = request.POST.get('payment_mode')
+            if payMode == "Paid by Razorpay":
+                return JsonResponse({'status':"Your order has been placed successfully"})
 
             messages.success(request, "Your order has been placed successfully")
-            return redirect('/')
+            return redirect('orderview', t_no=neworder.tracking_no)
+        
         else:
-            messages.error(request, "Please select an address and payment method")
+            messages.error(request, "Please select an address or put items in to cart")
             return redirect('checkout')
-            
-
-       
+        
     else:
         form = AddressForm()
         addresses = Address.objects.filter(user=request.user)
-        cartitems = Cart.objects.filter(user=request.user)
-        total_price = 0  
-        for item in cartitems:
-            total_price += item.product.price * item.product_qty
-        context = {'form':form, 'addresses':addresses,'cartitems':cartitems, 'total_price':total_price}
+        cart = Cart.objects.get(user=request.user)
+        cart_items = cart.cartitem_set.all()
+        # total_price = 0  
+        # for item in cart_items:
+        #     total_price += item.product.price * item.product_qty
+        
+        context = {'form':form, 'addresses':addresses,'cartitems':cart_items, 'total_price':total_price, 'discount_amount':discount_amount, 'grand_total':grand_total}
         return render(request, "store/checkout.html", context)
+    
 
+
+
+@login_required(login_url='login')
+def razorpaycheck(request):
+    if request.method == 'GET':
+        address_id = request.GET['address_id']
+        if address_id is not None:    
+            # print(address_id)
+            address_ = Address.objects.filter(id=address_id, user=request.user).values().first()
+            if address_:
+                address_['phone'] = str(address_['phone'])
+                cart = Cart.objects.get(user=request.user)
+                cart_items = cart.cartitem_set.all()
+                total_price = 0
+                for item in cart_items:
+                    total_price = total_price + item.product.price * item.product_qty
+                data = {'total_price': total_price, 'address': address_}
+                
+                return JsonResponse(data)
+            else:
+                return JsonResponse({'error':'Address not found'}, status=404)
+        else:
+            return JsonResponse({'error':'Address Id missing'}, status=400)
+
+@login_required(login_url="login")
 def view_order(request, t_no):
     order = Order.objects.filter(tracking_no=t_no).filter(user=request.user).first()
+    grand_total = order.grand_total
     orderitems = OrderItem.objects.filter(order=order)
-    context = {'order':order, 'orderitems':orderitems}
+    context = {'order':order, 'orderitems':orderitems, 'grand_total':grand_total}
     return render(request, "store/order_view.html", context)
 
+@login_required(login_url="login")
 def cancel_order(request):
     if request.method == 'GET':
         try:
             order_id = request.GET['order_id']
             order = Order.objects.get(id=order_id, user=request.user)
-            order.status = 'Cancelled'
+            order.status = 5
             order.save()
             return JsonResponse({'message': 'Order Cancelled', 'order':order.serialize()})
         except Address.DoesNotExist:
             return JsonResponse({'error': 'Order does not exist'}, status=404)
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
+
+@login_required(login_url="login")
+def return_order(request):
+    if request.method == 'GET':
+        try:
+            order_id = request.GET['order_id']
+            order = Order.objects.get(id=order_id, user=request.user)
+            order.status = 6
+            order.save()
+            return JsonResponse({'message': 'Order will be picked by our staff', 'order':order.serialize()})
+        except Address.DoesNotExist:
+            return JsonResponse({'error': 'Order does not exist'}, status=404)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
