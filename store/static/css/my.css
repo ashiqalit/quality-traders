@@ -64,6 +64,23 @@
 
 }
 
+.btn-defalt{
+    background-color: #525252;
+    color: #ffffff;
+}
+
+.btn-defalt:hover{
+    background-color: #ffffff;
+    color: #525252;
+    border: 1px solid #525252;
+}
+
+#will_back:hover {
+    cursor: default;
+    background-color: #525252;
+    color: #ffffff;
+}
+
 .btn-primry{
     background-color: #3b71ca;
     color: #ffffff;

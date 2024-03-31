@@ -1,0 +1,93 @@
+{% extends "store/layouts/main.html" %}
+
+{% block content %}
+{% load static %}
+{% include 'store/includes/user_css.html' %}
+
+<div class="container bootstrap snippets bootdey">
+    <div class="row">
+        
+        <div class="profile-info col-md-12">
+            <div class="panel">
+                <div class="bio-graph-heading">
+                </div>
+            </div>
+            <div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="panel order-nav">
+                            <div class="panel-body">
+                                <div class="row">
+                                    <div class="col-md-12 orders">
+                                        <div class="panel panel-default">
+                                            {% if not wishlist_items %}
+                                            <h3 class="text-center">Wishlist empty</h3>
+                                            {% else %}
+                                                {% if wishlist_items %}
+                                                <div class="panel-heading">
+                                                    <h3 class="text-center">Your Wishlist</h3>
+                                                </div>
+                                                {% endif %}
+                                            
+                                                <div class="panel-body panel-shadow"
+                                                    style="display: flex; flex-direction: column; align-items: stretch;">
+                                                    <table class="table">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Product</th>
+                                                                <th>Price</th>
+                                                                <th>Stock Status</th>
+                                                                <th>Action </th>
+                                                                <th>Remove</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                           
+                                                                {% for item in wishlist_items %}
+                                                                {% csrf_token %}
+                                                                <tr>
+                                                                    <td class="image"></td>
+                                                                    <td>{{item.products.name}}</td>
+                                                                    <td>{{item.products.price}}</td>
+                                                                    <td>{{item.products.availability}}</td>
+                                                                    <td>
+                                                                        {% if item.products.availability == 'In stock' %}
+                                                                        <a href="#" data-wishlist_items={{item.products.id}} data-action="add"
+                                                                        class="btn btn-success add-to-wishlist-cart"><i class="fa fa-shopping-cart"></i>Add
+                                                                        to cart</a>
+                                                                        {% else %}
+                                                                        <button class="order_cancel btn btn-defalt"
+                                                                        id="will_back">Wil be back</button>
+
+                                                                        {% endif %}
+                                                                    </td>
+                                                                    <td class="wishlist_delete">
+                                                                        <a class="wishlist_item_delete btn btn-danger"
+                                                                        data-wishlist_items={{item.products.id}}>Remove</a>
+                                                                    </td>
+                                                                </tr>
+                                                                {% endfor %}
+                                                            
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock content %}
+{% block scripts %}
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+<script src="https://netdna.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+{% endblock scripts %}

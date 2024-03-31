@@ -1,4 +1,4 @@
-from .models import Cart, Product
+from .models import Cart, Product, Wishlist
 from .filters import ProductFilter
 
 # navbar
@@ -21,3 +21,15 @@ def filter_context(request):
     myfilter = ProductFilter(request.GET, queryset=product)
     filtered_products = myfilter.qs
     return {'myfilter': myfilter}
+
+def wishlist_count(request):
+    if request.user.is_authenticated:
+        user = request.user
+        try:
+            wishlist = Wishlist.objects.get(user=user)
+            wishlist_count = wishlist.wishlistitem_set.count()
+        except Wishlist.DoesNotExist:
+            wishlist_count = 0
+    else:
+        wishlist_count = 0
+    return {'wishlist_count':wishlist_count}

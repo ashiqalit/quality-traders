@@ -26,5 +26,10 @@ urlpatterns = [
     # path('apply-coupon', views.apply_coupon, name='apply_coupon'),
     path('remove_coupon', views.remove_coupon, name='remove_coupon'),
 
+    #wishlist
+    path('wishlist', views.wishlist, name='wishlist'),
+    path('add-to-wishlist', views.add_to_wishlist, name='addtowishlist'),
+    path('remove-wishlistitem', views.remove_wishlistitem, name='remove_wishlist_item'),
+
 
 ]

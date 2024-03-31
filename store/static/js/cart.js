@@ -123,7 +123,7 @@ $('.cart_quantity_delete').click(function (e) {
 
         },
         error: function (xhr, status, error) {
-            console.error('Error increasing the quantity:', error);
+            console.error('Error deleting the cart item:', error);
         }
     });
 });

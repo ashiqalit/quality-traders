@@ -62,7 +62,8 @@
           <div class="shop-menu pull-right">
             <ul class="nav navbar-nav">
               <li><a href="{% url 'view_profile' %}"><i class="fa fa-user"></i> Account</a></li>
-              <li><a href="#"><i class="fa fa-star"></i> Wishlist</a></li>
+              <li><a href="{% url 'wishlist' %}"><i class="fa fa-star"></i> Wishlist
+                <span class="badge badge-secondary wishlist-count" id="wishlist-counter">{{ wishlist_count }}</span></a></li>
               <li><a href="{% url 'checkout' %}"><i class="fa fa-crosshairs"></i> Checkout</a></li>
               {% if user.is_authenticated %}
               <li>
@@ -86,7 +87,7 @@
   <div class="header-bottom"><!--header-bottom-->
     <div class="container">
       <div class="row">
-        <div class="col-sm-9">
+        <div class="col-sm-12">
           <div class="navbar-header">
             <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
               <span class="sr-only">Toggle navigation</span>
@@ -116,14 +117,6 @@
               <li><a href="404.html">404</a></li>
               <li><a href="contact-us.html">Contact</a></li>
             </ul>
-          </div>
-        </div>
-        <div class="col-sm-3">
-          <div class="search_box pull-right form-group">
-            <form action="#" method="get">
-              {{ myfilter.form.name }}
-              <button class="btn btn-primry" type="submit">Search</button>
-            </form>
           </div>
         </div>
       </div>

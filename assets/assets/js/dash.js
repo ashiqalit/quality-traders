@@ -1,6 +1,8 @@
 $('.cancel-order-dash').click(function () {
     var orderId = $(this).data('order-id');
     var statusCell = $(this).closest('tr').find('.order-status');
+    var buttonsCell = $(this).closest('tr').find('.buttons');
+
 
     $.ajax({
         type: "POST",
@@ -11,10 +13,24 @@ $('.cancel-order-dash').click(function () {
         },
         success: function (response) {
             if (response.success) {
-                statusCell.text('Cancelled');
-                alert('Order cancelled successfully.');
+                statusCell.text('Cancel');
+
+                Swal.fire({
+                    title: "Order Cancelled",
+                    icon: "success"
+                }).then(function () {
+
+                    $.get(window.location.href, function (data) {
+                        var cancelledMsgButton = $('<button class="me-3 btn btn-default btn-sm cancelled-msg" href="#">Cancelled</button>');
+                        buttonsCell.find('.cancel-order-dash').replaceWith(cancelledMsgButton);
+                    });
+                });
+
             } else {
-                alert('Failed to cancel order.');
+                Swal.fire({
+                    title: "Order cancel failed",
+                    icon: "error"
+                });
                 console.log(response.error)
             }
         },

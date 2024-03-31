@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib import messages
-from store.models import Category, Brand, Product, Cart, CartItem, Order, OrderItem, Address, Coupon
+from store.models import Category, Brand, Product, Cart, CartItem, Order, OrderItem, Address, Coupon, Wishlist, WishlistItem
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse,HttpResponse,HttpResponseForbidden
@@ -28,13 +28,12 @@ def home(request):
     elif brandId:
         product = Product.objects.filter(brand = brandId).order_by('-id')
     else:
-        product = filter_context(request)
-        filtered_products = product.get('myfilter').qs
+        product = Product.objects.all()
     
     context = {
         'category':category,
         'brands':brands,
-        'product':filtered_products,
+        'product':product
 
     }
     return render(request, 'store/index.html', context)
@@ -98,44 +97,6 @@ def add_to_cart(request):
                 cart_counter = update_cart_counter(cart)
                 response_data = {'success': False, 'message': 'Product out of stock', 'cart_counter':cart_counter}
                 return JsonResponse(response_data)
-        
-
-# def apply_coupon(request):
-#     if request.method == 'POST':
-#         code = request.POST.get("code")
-#         print("Code:",code)
-#         cart = Cart.objects.get(user=request.user)
-        
-#         if cart:
-#             coupon = Coupon.objects.filter(coupon_code__iexact=code, active=True).first()
-#             if coupon:
-#                 for cart_coupon in cart.coupons.all():
-#                     if cart_coupon == coupon:
-#                         messages.warning(request, "Coupon already activated")
-#                         print("Coupon already activated")
-#                         return redirect('showcart')
-
-#                 cart.coupons.add(coupon)
-#                 total_price = request.session.get('total_price')
-#                 if coupon.type == "Percentage":
-#                     discount = total_price * coupon.discount/100
-#                 else:
-#                     discount = coupon.discount
-                
-#                 total_price -= discount
-#                 request.session['total_price'] = total_price
-                
-#                 messages.success(request, "Coupon Activated")                
-#                 return redirect('showcart')
-#             else:
-#                 print("coupon does not exists")
-#                 messages.warning(request, "Coupon does not exists")
-#                 return redirect('showcart')
-
-#         else:
-#             messages.error(request, "An error occurred. Please try again later.")
-#             return redirect('/')
-#     return redirect(reverse('showcart'), {'cart':cart, 'coupon':coupon})
             
 
 @login_required(login_url="login")
@@ -442,3 +403,53 @@ def return_order(request):
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
 
+@login_required(login_url="login")
+def wishlist(request):
+    try:
+        wishlist = Wishlist.objects.get(user=request.user)
+    except Wishlist.DoesNotExist:
+        wishlist = Wishlist.objects.create(user=request.user) 
+
+    wishlist_items = WishlistItem.objects.filter(wishlist=wishlist)
+
+    context = {
+        "wishlist":wishlist,
+        "wishlist_items":wishlist_items,
+    }
+    return render(request, "store/wishlist.html",context)
+
+@login_required(login_url="login")
+def add_to_wishlist(request):
+    if request.method == 'POST':
+        product_id = request.POST.get('product_id')
+        product = Product.objects.get(id = product_id)
+
+        try:
+            wishlist = Wishlist.objects.get(user = request.user)
+        except Wishlist.DoesNotExist:
+            wishlist = Wishlist.objects.create(user = request.user)
+
+        try:
+            wishlist_item = WishlistItem.objects.get(products=product, wishlist=wishlist)
+            response_data = {'success': False, 'message': 'Product already in wishlist', 'wishlist_counter': wishlist.wishlistitem_set.count()}
+        except WishlistItem.DoesNotExist:
+            wishlist_item = WishlistItem.objects.create(products=product, wishlist=wishlist)
+            response_data = {'success': True, 'message': 'Product added to wishlist', 'wishlist_counter': wishlist.wishlistitem_set.count()}
+        
+        return JsonResponse(response_data)
+
+@login_required(login_url="login")
+def remove_wishlistitem(request):
+    if request.method == 'GET':
+        product_id = request.GET['product_id']
+        print(product_id)
+        product = Product.objects.get(id=product_id)
+        wishlist = Wishlist.objects.get(user=request.user)
+        wishlist_item = WishlistItem.objects.filter(products=product, wishlist=wishlist).first()
+        wishlist_item.delete()
+        wishlist_count = wishlist.wishlistitem_set.count()
+
+        data = {
+            'wishlist_count':wishlist_count
+        }
+        return JsonResponse(data)

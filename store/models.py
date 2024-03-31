@@ -169,6 +169,16 @@ class OrderItem(models.Model):
     def __str__(self):
         return '{} - {}'.format(self.order.id, self.order.tracking_no)
 
+class Wishlist(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    
+    def __str__(self):
+        return self.user.username
+    
+class WishlistItem(models.Model):
+    wishlist = models.ForeignKey(Wishlist, on_delete=models.CASCADE)
+    products = models.ForeignKey(Product, on_delete=models.CASCADE)
 
-
+    def __str__(self):
+        return self.products.name
     
