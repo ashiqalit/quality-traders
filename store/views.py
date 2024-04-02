@@ -1,14 +1,14 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib import messages
-from store.models import Category, Brand, Product, Cart, CartItem, Order, OrderItem, Address, Coupon, Wishlist, WishlistItem
+from store.models import Category, Brand, Product, Cart, CartItem, Order, OrderItem, Address, Coupon, Wishlist, WishlistItem, Wallet
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse,HttpResponse,HttpResponseForbidden
+from django.http import JsonResponse,HttpResponse,HttpResponseForbidden,HttpResponseRedirect
 import random
 from .forms import AddressForm
 from django.core.serializers.json import DjangoJSONEncoder
-from django.db.models import Sum
+from django.db import transaction
 from .filters import ProductFilter
 from .context_processors import filter_context
 
@@ -266,13 +266,20 @@ def remove_cart(request):
 # checkout
 @login_required(login_url="login")
 def checkout(request):
-    cart = Cart.objects.get(user=request.user)
-    cart_items = cart.cartitem_set.all()
-    total_price, discount_amount, grand_total = cart.total_cost #fetching from model defenition total cost
-
-    if not cart_items:  # If cart is empty, redirect to cart page
+    try:
+        try:
+            cart = Cart.objects.get(user=request.user)
+        except Cart.DoesNotExist:
+            cart = Cart.objects.create(user=request.user) 
+        cart_items = cart.cartitem_set.all()
+        total_price, discount_amount, grand_total = cart.total_cost #fetching from model defenition total cost
+    except CartItem.DoesNotExist:
+        # If cart is empty, redirect to cart page
         return redirect('showcart')
-
+    if not cart_items:
+        # If cart items are empty, redirect to cart page
+        return redirect('showcart')
+    
     if request.method == 'POST':
         form = AddressForm(request.POST)
         if form.is_valid():
@@ -286,11 +293,12 @@ def checkout(request):
         payment_id = request.POST.get('payment_id')
         
         if selected_address_id and payment_mode and cart_items:
+            print('Payment method:',payment_mode)
             selected_address = Address.objects.get(pk=selected_address_id)
             neworder = Order(user=request.user, payment_mode=payment_mode, address=selected_address)
-            grand_total = neworder.grand_total
             neworder.total_price = total_price
             neworder.discount_price = discount_amount
+            grand_total = neworder.grand_total
             request.session['total_price'] = neworder.total_price
 
             # tracking number
@@ -319,13 +327,18 @@ def checkout(request):
             for item in cart_items: item.delete()
             cart.delete()
 
-            payMode = request.POST.get('payment_mode')
-            if payMode == "Paid by Razorpay":
-                return JsonResponse({'status':"Your order has been placed successfully"})
+            # payMode = request.POST.get('payment_mode')
+            # if payMode == "Razorpay":
+            #     return JsonResponse({'status':"Your order has been placed successfully"})
+            # else:
+            #     messages.success(request, "Your order has been placed successfully")
+            #     return redirect('orderview', t_no=neworder.tracking_no)
+            if payment_mode == "Razorpay":
 
+                return JsonResponse({'status':"Your order has been placed successfully", 't_no':neworder.tracking_no})
             messages.success(request, "Your order has been placed successfully")
             return redirect('orderview', t_no=neworder.tracking_no)
-        
+
         else:
             messages.error(request, "Please select an address or put items in to cart")
             return redirect('checkout')
@@ -355,11 +368,12 @@ def razorpaycheck(request):
             if address_:
                 address_['phone'] = str(address_['phone'])
                 cart = Cart.objects.get(user=request.user)
-                cart_items = cart.cartitem_set.all()
-                total_price = 0
-                for item in cart_items:
-                    total_price = total_price + item.product.price * item.product_qty
-                data = {'total_price': total_price, 'address': address_}
+                total_price, discount_amount, grand_total = cart.total_cost
+                # cart_items = cart.cartitem_set.all()
+                # total_price = cart.total_cost
+                # for item in cart_items:
+                #     total_price = total_price + item.product.price * item.product_qty
+                data = {'total_price': grand_total, 'address': address_}
                 
                 return JsonResponse(data)
             else:
@@ -381,8 +395,26 @@ def cancel_order(request):
         try:
             order_id = request.GET['order_id']
             order = Order.objects.get(id=order_id, user=request.user)
-            order.status = 5
-            order.save()
+            # Start transaction to ensure atomicity
+            with transaction.atomic():
+                # Change order status to 'Cancel'
+                order.status = 5
+                order.save()
+
+                # Increment product quantities
+                order_items = order.orderitem_set.all()
+                for order_item in order_items:
+                    product = order_item.product
+                    product.quantity += order_item.quantity
+                    product.save()
+                
+                wallet = Wallet.objects.create(
+                    user = request.user,
+                    order = order,
+                    amount = order.grand_total,
+                    status = 'Credited'
+                )
+                wallet.save()
             return JsonResponse({'message': 'Order Cancelled', 'order':order.serialize()})
         except Address.DoesNotExist:
             return JsonResponse({'error': 'Order does not exist'}, status=404)
@@ -395,8 +427,27 @@ def return_order(request):
         try:
             order_id = request.GET['order_id']
             order = Order.objects.get(id=order_id, user=request.user)
-            order.status = 6
-            order.save()
+            # Start transaction to ensure atomicity
+            with transaction.atomic():
+                # Change order status to 'Cancel'
+                order.status = 5
+                order.save()
+    
+                # Increment product quantities
+                order_items = order.orderitem_set.all()
+                for order_item in order_items:
+                    product = order_item.product
+                    product.quantity += order_item.quantity
+                    product.save()
+                
+                wallet = Wallet.objects.create(
+                    user = request.user,
+                    order = order,
+                    amount = order.grand_total,
+                    status = 'Credited'
+                )
+                wallet.save()
+
             return JsonResponse({'message': 'Order will be picked by our staff', 'order':order.serialize()})
         except Address.DoesNotExist:
             return JsonResponse({'error': 'Order does not exist'}, status=404)
@@ -453,3 +504,11 @@ def remove_wishlistitem(request):
             'wishlist_count':wishlist_count
         }
         return JsonResponse(data)
+
+@login_required(login_url="login")
+def wallet(request):
+    wallets = Wallet.objects.filter(user=request.user).order_by('-created_at')
+    context = {
+        'wallets':wallets
+    }
+    return render(request, 'store/wallets.html', context)

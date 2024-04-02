@@ -30,6 +30,9 @@ urlpatterns = [
     path('wishlist', views.wishlist, name='wishlist'),
     path('add-to-wishlist', views.add_to_wishlist, name='addtowishlist'),
     path('remove-wishlistitem', views.remove_wishlistitem, name='remove_wishlist_item'),
+    
+    #wallet
+    path('wallet', views.wallet, name='wallet'),
 
 
 ]

@@ -34,7 +34,8 @@ class Brand(models.Model):
 
 LABEL = (
     ('N', 'New'),
-    ('BS', 'Best Seller')
+    ('BS', 'Best Seller'),
+    ('O', 'Ordinary'),
 )
 
 class Product(models.Model):
@@ -155,6 +156,7 @@ class Order(models.Model):
             'id': self.id,
             'status': self.status,
         }
+    @property
     def grand_total(self):
         grand_total = 0
         grand_total = self.total_price - self.discount_price 
@@ -182,3 +184,13 @@ class WishlistItem(models.Model):
     def __str__(self):
         return self.products.name
     
+class Wallet(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, blank=True)
+    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    is_credit = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.user} {self.amount} {self.is_credit}"

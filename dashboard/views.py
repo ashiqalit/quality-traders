@@ -9,6 +9,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.core.files.storage import FileSystemStorage
+from django.db import transaction
 # from .forms import UserForm
 
 # Create your views here.
@@ -306,7 +307,18 @@ def cancel_order(request):
     if request.method == 'POST':
         order_id = request.POST.get('order_id')
         order = get_object_or_404(Order, id=order_id)
-        order.status = 5
-        order.save()
+        # Start transaction to ensure atomicity
+        with transaction.atomic():
+            # Change order status to 'Cancel'
+            order.status = 5
+            order.save()
+
+            # Increment product quantities
+            order_items = order.orderitem_set.all()
+            for order_item in order_items:
+                product = order_item.product
+                product.quantity += order_item.quantity
+                product.save()
+        
         return JsonResponse({'success':True})
     return JsonResponse({'success':False})
