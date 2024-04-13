@@ -5,103 +5,14 @@
 <section>
 	<div class="container">
 		<div class="row">
-			<div class="col-sm-3">
-				<div class="left-sidebar">
-					<h2>Category</h2>
-					<div class="panel-group category-products" id="accordian"><!--category-productsr-->
-						{% for cat in category %}
-						<div class="panel panel-default">
-							<div class="panel-heading">
-								<h4 class="panel-title">
-									<a data-toggle="collapse" data-parent="#accordian" href="#{{cat.id}}">
-										<span class="badge pull-right"><i class="fa fa-plus"></i></span>
-										{{cat.name}}
-									</a>
-								</h4>
-							</div>
-							<div id="{{cat.id}}" class="panel-collapse collapse">
-								<div class="panel-body">
-									<ul>
-										{% for i in cat.sub_category_set.all %}
-										<li><a href="/?category={{i.id}}">{{i.name}} </a></li>
-										{% endfor %}
-									</ul>
-								</div>
-							</div>
-						</div>
-						{% endfor %}
 
-					</div><!--/category-products-->
-
-					<div class="brands_products"><!--brands_products-->
-						<h2>Brands</h2>
-						<div class="brands-name">
-							<ul class="nav nav-pills nav-stacked">
-								<li><a href=""> <span class="pull-right">(50)</span>Acne</a></li>
-								<li><a href=""> <span class="pull-right">(56)</span>Grüne Erde</a></li>
-								<li><a href=""> <span class="pull-right">(27)</span>Albiro</a></li>
-								<li><a href=""> <span class="pull-right">(32)</span>Ronhill</a></li>
-								<li><a href=""> <span class="pull-right">(5)</span>Oddmolly</a></li>
-								<li><a href=""> <span class="pull-right">(9)</span>Boudestijn</a></li>
-								<li><a href=""> <span class="pull-right">(4)</span>Rösch creative culture</a></li>
-							</ul>
-						</div>
-					</div><!--/brands_products-->
-
-					<div class="price-range"><!--price-range-->
-						<h2>Price Range</h2>
-						<div class="well">
-							<input type="text" class="span2" value="" data-slider-min="0" data-slider-max="600"
-								data-slider-step="5" data-slider-value="[250,450]" id="sl2"><br />
-							<b>$ 0</b> <b class="pull-right">$ 600</b>
-						</div>
-					</div><!--/price-range-->
-
-					<div class="shipping text-center"><!--shipping-->
-						<img src="images/home/shipping.jpg" alt="" />
-					</div><!--/shipping-->
-
-				</div>
-			</div>
-
-			<div class="col-sm-9 padding-right">
+			<div class="col-sm-12 padding-right">
 				<div class="product-details"><!--product-details-->
 					<div class="col-sm-5">
 						<div class="view-product">
 							<img src="/media/{{ product.image }}" alt="" />
 							<!-- <h3>ZOOM</h3> -->
 						</div>
-						<!-- <div id="similar-product" class="carousel slide" data-ride="carousel"> -->
-
-						<!-- Wrapper for slides -->
-						<!-- <div class="carousel-inner">
-									<div class="item active">
-									  <a href=""><img src="images/product-details/similar1.jpg" alt=""></a>
-									  <a href=""><img src="images/product-details/similar2.jpg" alt=""></a>
-									  <a href=""><img src="images/product-details/similar3.jpg" alt=""></a>
-									</div>
-									<div class="item">
-									  <a href=""><img src="images/product-details/similar1.jpg" alt=""></a>
-									  <a href=""><img src="images/product-details/similar2.jpg" alt=""></a>
-									  <a href=""><img src="images/product-details/similar3.jpg" alt=""></a>
-									</div>
-									<div class="item">
-									  <a href=""><img src="images/product-details/similar1.jpg" alt=""></a>
-									  <a href=""><img src="images/product-details/similar2.jpg" alt=""></a>
-									  <a href=""><img src="images/product-details/similar3.jpg" alt=""></a>
-									</div>
-									
-								</div> -->
-
-						<!-- Controls -->
-						<!-- <a class="left item-control" href="#similar-product" data-slide="prev">
-								<i class="fa fa-angle-left"></i>
-							  </a>
-							  <a class="right item-control" href="#similar-product" data-slide="next">
-								<i class="fa fa-angle-right"></i>
-							  </a>
-						</div> -->
-
 					</div>
 					<div class="col-sm-7">
 						{% csrf_token %}
@@ -110,12 +21,29 @@
 							<h2>{{product.name}}</h2>
 							<!-- <p>Web ID: 1089772</p> -->
 							<!-- <img src="images/product-details/rating.png" alt="" /> -->
-							<span>
-								<span>₹{{product.price}}</span>
+							<div class="price-container">
+								{% if product.offer or product.sub_category.offer %}
+                                    <h2>₹{{product.get_discounted_price.0}}</h2>
+                                    <s class="text-success">₹{{product.price}}</s>
+                                {% else %}
+                                    <h2>₹{{product.price}}</h2>
+                                {% endif %}
 								<a href="#" data-product={{product.id}} data-action="add"
 									class="btn btn-default add-to-cart"><i class="fa fa-shopping-cart"></i>Add
 									to cart</a>
-							</span>
+							</div>
+							{% if product.sub_category.offer and product.offer %}
+							    {% if product.offer > product.sub_category.offer %}
+							        <p><b>Product Offer:</b> {{ product.offer }}</p>
+							    {% else %}
+							        <p><b>Category Offer:</b> {{ product.sub_category.offer }}</p>
+							    {% endif %}
+							{% elif product.offer %}
+							    <p><b>Product Offer:</b> {{ product.offer }}</p>
+							{% elif product.sub_category.offer %}
+							    <p><b>Category Offer:</b> {{ product.sub_category.offer }}</p>
+							{% endif %}
+													
 							<p><b>Availability:</b> {{product.availability}}</p>
 							<!-- <p><b>Condition:</b> New</p> -->
 							<p><b>Brand:</b> {{product.brand}}</p>

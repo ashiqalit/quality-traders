@@ -34,6 +34,7 @@
                                                     <table class="table">
                                                         <thead>
                                                             <tr>
+                                                                <th></th>
                                                                 <th>Product</th>
                                                                 <th>Price</th>
                                                                 <th>Stock Status</th>
@@ -46,9 +47,14 @@
                                                                 {% for item in wishlist_items %}
                                                                 {% csrf_token %}
                                                                 <tr>
-                                                                    <td class="image"></td>
+                                                                    <td class="">
+                                                                        <a href="">
+                                                                            <img src="{{item.products.image.url}}" alt=""
+										                                    style="width: 60px; height:auto">
+                                                                        </a>
+                                                                    </td>
                                                                     <td>{{item.products.name}}</td>
-                                                                    <td>{{item.products.price}}</td>
+                                                                    <td>{{item.products.get_discounted_price.0}}</td>
                                                                     <td>{{item.products.availability}}</td>
                                                                     <td>
                                                                         {% if item.products.availability == 'In stock' %}
@@ -62,7 +68,7 @@
                                                                         {% endif %}
                                                                     </td>
                                                                     <td class="wishlist_delete">
-                                                                        <a class="wishlist_item_delete btn btn-danger"
+                                                                        <a class="wishlist_item_delete btn btn-danger" id="wishlist_delete"
                                                                         data-wishlist_items={{item.products.id}}>Remove</a>
                                                                     </td>
                                                                 </tr>

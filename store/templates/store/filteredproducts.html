@@ -1,0 +1,51 @@
+
+
+                    {% for prod in products %}
+                    <div class="col-sm-4">
+                        <div class="product-image-wrapper">
+                            <div class="single-products product_data">
+                                <div class="productinfo text-center">
+                                    {% csrf_token %}
+                                    <input type="hidden" value="{{ prod.id }}" class="prod_id" name="product_id">
+                                    <img src="{{prod.image.url}}" alt="" height="300px" width="auto" />
+
+                                    {% if prod.offer or prod.sub_category.offer %}
+                                    <h2>₹{{prod.get_discounted_price.0}}</h2>
+                                    <s class="text-success">₹{{prod.price}}</s>
+                                    {% else %}
+                                    <h2>₹{{prod.price}}</h2>
+                                    {% endif %}
+
+                                    <p class="prod_name">{{prod.name}}</p>
+                                    <a href="#" data-product={{prod.id}} data-action="add"
+                                        class="btn btn-default add-to-cart"><i class="fa fa-shopping-cart"></i>Add to
+                                        cart</a>
+                                </div>
+                                <div class="product-overlay">
+                                    <div class="overlay-content">
+                                        {% if prod.offer or prod.sub_category.offer %}
+                                        <h2>₹{{prod.get_discounted_price.0}}</h2>
+                                        <s class="text-success">₹{{prod.price}}</s>
+                                        {% else %}
+                                        <h2>₹{{prod.price}}</h2>
+                                        {% endif %}
+
+                                        <p>{{prod.name}}</p>
+                                        <a href="#" data-product={{prod.id}} data-action="add"
+                                            class="btn btn-default add-to-cart"><i class="fa fa-shopping-cart"></i>Add
+                                            to cart</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="choose">
+                                <ul class="nav nav-pills nav-justified">
+                                    <li><a href="" data-product={{prod.id}} class="add-to-wishlist"><i
+                                                class="fa fa-heart"></i>Add to wishlist</a></li>
+                                    <li><a href="{% url 'product_detail' prod.id  %}"><i
+                                                class="fa fa-plus-square"></i>View Product</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+  

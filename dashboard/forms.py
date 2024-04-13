@@ -2,6 +2,7 @@ from django import forms
 from django.forms import ModelForm
 from store.models import Category,Product,Sub_category,Brand,Order
 # from django.contrib.auth.hashers import make_password
+from bootstrap_datepicker_plus.widgets import DatePickerInput, TimePickerInput
 
 class CategoryForm(ModelForm):
     class Meta:
@@ -16,7 +17,7 @@ class CategoryForm(ModelForm):
 class ProductForm(ModelForm):
     class Meta:
         model = Product
-        fields = ('category','sub_category','image','name','price','brand','availability','quantity')
+        fields = ('category','sub_category','image','name','price', 'offer','brand','availability','quantity')
 
 class SubCategoryForm(ModelForm):
     class Meta:

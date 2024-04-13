@@ -105,3 +105,16 @@
     width: auto;
 }
 
+/* Product detail page */
+.price-container {
+    display: flex;
+    align-items: center;
+    /* justify-content: center; */
+    height: 100%;
+}
+.price-container h2,
+.price-container s {
+    display: inline-block;
+    margin-right: 10px;
+}
+

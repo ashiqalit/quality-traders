@@ -36,17 +36,17 @@
 						<tr class="cart-item">
 							{% csrf_token %}
 							<td class="cart_product" style="margin-right: 1px;">
-								<a href=""><img src="{{item.product.image.url}}" alt=""
+								<a href="{% url 'product_detail' item.product.id %}"><img src="{{item.product.image.url}}" alt=""
 										style="width: 60px; height:auto"></a>
 							</td>
 	
 							<td class="cart_description">
-								<h4><a href="">{{item.product.name}}</a></h4>
+								<h4><a href="{% url 'product_detail' item.product.id %}">{{item.product.name}}</a></h4>
 								<!-- <p>Web ID: 1089772</p> -->
 							</td>
 	
 							<td class="cart_price">
-								<p>₹{{item.product.price}}</p>
+                                <p>₹{{item.product.price}}</p>
 							</td>
 	
 							<td class="cart_quantity">
@@ -142,10 +142,11 @@
 					<div class="container summary">
 							<div class="total_area">
 								<ul>
-									<li>Cart Sub Total <span>₹{{ total_price }}</span></li>
-									<li>Coupon Discount <span>₹{{ discount_amount }}</span></li>
+									<li>Cart Sub Total <span id="amount">₹{{ total_price }}</span></li>
+									<li>Coupon Discount <span id="coupon_discount">₹{{ discount_amount }}</span></li>
+									<li>Offer Discount <span id="offer">₹{{ offer_discount }}</span></li>
 									<li>
-										<h4>Total<span class="grand_total" id="amount">₹{{ grand_total }}</span></h4>
+										<h4>Total<span class="grand_total" id="cart_total">₹{{ grand_total }}</span></h4>
 									</li>
 									<a href="{% url 'checkout' %}" class="btn btn-default check_out">Check out</a>
 								</ul>

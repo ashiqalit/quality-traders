@@ -14,7 +14,7 @@ $('.add-to-cart').click(function (event) {
         success: function (response) {
             console.log('Product added to cart:', response);
             alertify.success(response.message);
-            document.getElementById("cart-counter").innerText = response.cart_counter
+            document.getElementById("cart-counter").innerText = response.cart_counter          
         },
         error: function (xhr, status, error) {
             console.error('Error adding product to cart:', error);
@@ -41,7 +41,10 @@ $('.cart_quantity_up').click(function (e) {
                 if(data.success==true){
                     qty.innerText = data.quantity
                     document.getElementById("amount").innerText = '₹' + data.amount
+                    document.getElementById("cart_total").innerText = '₹' + data.grand_total
                     document.getElementById("cart-counter").innerText = data.cart_count
+                    document.getElementById("offer").innerText = data.offer_discount
+                    document.getElementById("coupon_discount").innerText = data.coupon_discount
                 }
                 else if (data.success==false){
                     
@@ -79,7 +82,10 @@ $('.cart_quantity_down').click(function (e) {
                 if(data.success==true){
                     qty.innerText = data.quantity
                     document.getElementById("amount").innerText = '₹' + data.amount
+                    document.getElementById("cart_total").innerText = '₹' + data.grand_total
                     document.getElementById("cart-counter").innerText = data.cart_count
+                    document.getElementById("offer").innerText = data.offer_discount
+                    document.getElementById("coupon_discount").innerText = data.coupon_discount
                 }
                 else if (data.success==false){
                     
@@ -115,6 +121,7 @@ $('.cart_quantity_delete').click(function (e) {
             if (data) {
                 document.getElementById("amount").innerText = '₹' + data.amount
                 document.getElementById("cart-counter").innerText = data.cart_count
+                document.getElementById("offer").innerText = data.offer_discount
 
                 qty.parentNode.parentNode.remove()
                 location.reload();

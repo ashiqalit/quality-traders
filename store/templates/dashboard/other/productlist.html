@@ -123,7 +123,10 @@
                                 <th>Category </th>
                                 <th>Sub Category </th>
                                 <th>Brand</th>
-                                <th>price</th>
+                                <th>Price</th>
+                                <th>Offer (Percentage)</th>
+                                <th>Discount Amount</th>
+                                <th>Final Amount</th>
                                 <!-- <th>Unit</th> -->
                                 <th>Qty</th>
                                 <th>Status</th>
@@ -150,8 +153,28 @@
                                 <td>{{product.category}}</td>
                                 <td>{{product.sub_category}}</td>
                                 <td>{{product.brand}}</td>
-                                <td>{{product.price}}</td>
-                                <!-- <td>pc</td> -->
+                                
+                                <td>₹{{product.price}}</td>
+
+                                <!-- Showing discount percent -->
+                                {% if product.offer == product.sub_category.offer %} <!-- if both present and are equal -->
+                                <td>{{ product.offer.discount|default:"0" }}%</td>
+                                {% elif product.offer %}
+                                <td>{{ product.offer.discount|default:"0" }}%</td>
+                                {% elif product.sub_category.offer %}
+                                <td>{{ product.sub_category.offer.discount|default:"0" }}%</td>
+                                {% endif %}  
+                                
+                                <!-- Discount amount -->
+                                {% if product.offer or product.sub_category.offer %}
+                                <td>₹{{product.get_discounted_offer}}</td>
+                                {% else %}
+                                <td>₹0</td>
+                                {% endif %}
+                                
+                                <td>₹{{ product.final_price|default:product.price }}</td>
+                                
+
                                 <td>{{product.quantity}}</td>
                                 <td>{{product.availability}}</td>
                                 <!-- <td>Admin</td> -->

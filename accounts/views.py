@@ -47,9 +47,9 @@ def loginpage(request):
 def logoutpage(request):
     try:
         cart = Cart.objects.get(user=request.user)
+        cart.delete()
     except Cart.DoesNotExist:
         pass
-    cart.delete()
     
     logout(request)
     return redirect('login')

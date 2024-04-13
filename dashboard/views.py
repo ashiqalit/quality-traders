@@ -131,10 +131,15 @@ def list_products(request):
     products = Product.objects.all()
     myFilter = ProductFilter(request.GET, queryset=products)
     filterd_products = myFilter.qs
+    discounted_total = 0
     for product in products:
+        if product.offer or product.sub_category.offer:
+            discounted_price, total_offer_price = product.get_discounted_price()
+            product.final_price = discounted_price
+            product.total_offer = total_offer_price
         product.availability = 'Out of stock' if product.quantity == 0 else 'In stock'
         product.save()
-    context = {'all_products' : filterd_products, 'myFilter' : myFilter}
+    context = {'all_products' : filterd_products, 'myFilter' : myFilter }
     return render(request, 'dashboard/other/productlist.html', context)
 
 @login_required(login_url="dashboard_login")

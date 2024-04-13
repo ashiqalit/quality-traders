@@ -1,0 +1,72 @@
+{% load static %}
+<div class="col-sm-3">
+    <div class="left-sidebar">
+        <h2>Category</h2>
+        <div class="panel-group category-products" id="accordian"><!--category-productsr-->
+            {% for cat in category %}
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4 class="panel-title">
+                        <a data-toggle="collapse" data-parent="#accordian" href="#{{cat.id}}">
+                            <span class="badge pull-right"><i class="fa fa-plus"></i></span>
+                            {{cat.name}}
+                        </a>
+                    </h4>
+                </div>
+                <div id="{{cat.id}}" class="panel-collapse collapse">
+                    <div class="panel-body">
+                        <div class="btn-group" data-toggle="buttons">
+                                {% for subcat in cat.sub_category_set.all %}
+                                    <div class="filter-checkbox">
+                                        <label class="btn btn-default" for="sub_category_checkbox_{{ subcat.id  }}">
+                                            <input type="checkbox" class="filter-checkbox-input sr-only" data-filter="sub_category"
+                                                name="checkbox" id="sub_category_checkbox_{{ subcat.id }}" value="{{ subcat.id }}">
+                                            <span>{{ subcat.name }}</span>
+                                        </label>
+                                    </div>
+                                {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+        </div><!--/category-products-->
+
+        <div class="brands_products"><!--brands_products-->
+            <h2>Brands</h2>
+            <div class="brands-name">
+                <div class="nav nav-pills btn-group nav-stacked" data-toggle="buttons">
+                    {% for brand in brands %}
+                        <div class="filter-checkbox">
+                            <label class="btn btn-default" for="brand_checkbox_{{ brand.id }}">
+                                <input type="checkbox" class="filter-checkbox-input sr-only" data-filter="brand" name="checkbox"
+                                    id="brand_checkbox_{{ brand.id }}" value="{{ brand.id }}">
+                                <span>{{ brand.name }}</span>
+                            </label>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div><!--/brands_products-->
+
+        <div class="filter-controls">
+            <button type="button" class="btn btn-default clear-filters">Clear Filters</button>
+        </div>
+
+
+        <div class="price-range"><!--price-range-->
+            <h2>Price Range</h2>
+            <div class="well text-center">
+                <input type="text" class="span2" value="" data-slider-min="0" data-slider-max="600" data-slider-step="5"
+                    data-slider-value="[250,450]" id="sl2"><br />
+                <b class="pull-left">$ 0</b> <b class="pull-right">$ 600</b>
+            </div>
+        </div><!--/price-range-->
+
+        <div class="shipping text-center"><!--shipping-->
+            <img src="{% static 'images/home/shipping.jpg' %}" alt="" />
+        </div><!--/shipping-->
+
+    </div>
+</div>

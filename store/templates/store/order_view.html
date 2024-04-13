@@ -24,7 +24,7 @@
                                     class="text-danger"
                                 {% endif %}>
                                 
-                                Order Status: {{ order.status }}</h3>
+                                Order Status: {{ order.get_status_display }}</h3>
                             </div>
                         </div>
                         <div class="row">
@@ -95,7 +95,8 @@
                                             <td></td>
                                             <td>
                                                 <h5 class="text-right text-primary">Sub Total: ₹{{order.total_price}}</h5>
-                                                <h5 class="text-right text-primary">Discount: ₹{{order.discount_price}}</h5>
+                                                <h5 class="text-right text-primary">Coupon Discount: ₹{{order.coupon_discount_price}}</h5>
+                                                <h5 class="text-right text-primary">Offer Discount: ₹{{order.offer_discount_price}}</h5>
                                                 <h4 class="text-right">
                                                     <strong class="text-success">Grand Total: ₹{{ grand_total }}
                                                     </strong>

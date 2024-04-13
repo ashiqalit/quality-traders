@@ -4,13 +4,14 @@ from django.contrib import messages
 from store.models import Category, Brand, Product, Cart, CartItem, Order, OrderItem, Address, Coupon, Wishlist, WishlistItem, Wallet
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse,HttpResponse,HttpResponseForbidden,HttpResponseRedirect
+from django.http import JsonResponse
 import random
 from .forms import AddressForm
-from django.core.serializers.json import DjangoJSONEncoder
 from django.db import transaction
-from .filters import ProductFilter
-from .context_processors import filter_context
+# from .filters import ProductFilter
+from decimal import Decimal
+# from .context_processors import filter_context
+from django.template.loader import render_to_string
 
 
 # Create your views here.
@@ -19,24 +20,35 @@ from .context_processors import filter_context
 def home(request):
     category = Category.objects.all()
     brands = Brand.objects.all()
+
+    products = Product.objects.all()
     
-    
-    categoryId = request.GET.get('category')
-    brandId = request.GET.get('brand')
-    if categoryId:
-        product = Product.objects.filter(sub_category = categoryId).order_by('-id')
-    elif brandId:
-        product = Product.objects.filter(brand = brandId).order_by('-id')
-    else:
-        product = Product.objects.all()
-    
+    # myFilter = ProductFilter(request.GET, queryset=products)
+    # filterd_products = myFilter.qs
+
     context = {
         'category':category,
         'brands':brands,
-        'product':product
+        'products':products,
 
     }
     return render(request, 'store/index.html', context)
+
+def filter_product(request):
+
+    subcategories = request.GET.getlist('sub_category[]')
+    brands = request.GET.getlist('brand[]')
+
+    products = Product.objects.all()
+
+    if len(subcategories) > 0:
+        products = products.filter(sub_category__id__in=subcategories).distinct()
+    
+    if len(brands) > 0:
+        products = products.filter(brand__id__in=brands).distinct()
+    
+    data = render_to_string('store/filteredproducts.html', {'products':products})
+    return JsonResponse({"data":data})
 
 @login_required(login_url="login")
 def product_detail(request, id):
@@ -61,20 +73,22 @@ def add_to_cart(request):
         product_id = request.POST.get('product_id')
         product = Product.objects.get(id=product_id) #get the product
         qty = product.quantity
-        
+
 
         try:
             cart = Cart.objects.get(user=user) #get existing cart
         except Cart.DoesNotExist:
             cart = Cart.objects.create(user=user) #if not create new cart
         cart.save()
-        
+        wishlist_item = WishlistItem.objects.filter(products=product) #checks if the product exists in wishlist items table
         try:
             cart_item = CartItem.objects.get(product=product, cart=cart) #get existing cart_item
             if cart_item.product_qty < qty: #if cart qty less the actual qty
                 cart_item.product_qty += 1 #increment cart
                 cart_item.save()
                 cart_counter = update_cart_counter(cart)
+                if wishlist_item.exists():  # Check if the product is in the wishlist
+                    wishlist_item.delete()
                 response_data = {'success': True, 'message': 'Product added to cart', 'cart_counter':cart_counter}
                 return JsonResponse(response_data)
             else:
@@ -90,6 +104,8 @@ def add_to_cart(request):
                     cart = cart
                 )
                 cart_counter = update_cart_counter(cart)
+                if wishlist_item.exists():  # Check if the product is in the wishlist
+                    wishlist_item.delete()
                 response_data = {'success': True, 'message': 'Product added to cart', 'cart_counter':cart_counter}
                 cart_item.save()
                 return JsonResponse(response_data)
@@ -110,6 +126,9 @@ def show_cart(request):
     cart_items = []
     try:
         cart_items = cart.cartitem_set.all()
+        total_offer_price = 0 
+        for item in cart_items:
+            total_offer_price += item.discounted_price
     except AttributeError:
         pass
     
@@ -135,13 +154,20 @@ def show_cart(request):
                 messages.warning(request, "Coupon does not exists")
                 return redirect('showcart')
 
-    total_price, discount_amount, grand_total = cart.total_cost
+    total_price, discount_amount, _, total_offer= cart.total_cost
+
+    discount_amount = Decimal(discount_amount)
+    total_price = Decimal(total_price)
+    total_offer = round(Decimal(total_offer),2)
+    grand_total = total_price - total_offer - discount_amount
+
     context = {
         'cart':cart,
         'cart_items':cart_items,
-        'grand_total': grand_total,
+        'grand_total': round(grand_total, 2),
         'total_price': total_price,
-        'discount_amount': discount_amount,
+        'discount_amount': round(discount_amount, 2),
+        'offer_discount': total_offer,
         }
     
     return render(request, 'store/cart_detail.html', context)
@@ -150,7 +176,7 @@ def show_cart(request):
 def remove_coupon(request):
     if request.method == 'POST': 
         cart = Cart.objects.get(user = request.user)
-        total_price, discount_amount, grand_total = cart.total_cost
+        # total_price, discount_amount, grand_total, _ = cart.total_cost
         coupon_id = request.POST.get('coupon_id')
         print(coupon_id)
 
@@ -181,26 +207,37 @@ def plus_cart(request):
         cart_items = cart.cartitem_set.filter(product=product).first()
         
         if cart_items:
-                if cart_items.product_qty < qty:
-                    cart_items.product_qty += 1
-                    cart_items.save()
-                    amount = 0.0
-                    cart_count = 0
-                    cart_product = [p for p in CartItem.objects.all() if p.cart.user == request.user]
-                    for p in cart_product:
-                        amt = (p.product_qty * p.product.price)
-                        amount += amt
-                        cart_count += p.product_qty
-                    data = {
-                        'success': True,
-                        'quantity':cart_items.product_qty,
-                        'amount':amount,
-                        'cart_count':cart_count,
-                    }
-                    return JsonResponse(data)
-                else:
-                    data = {'success': False, 'message': "Your limit reached"}
-                    return JsonResponse(data)
+            if cart_items.product_qty < qty:
+                cart_items.product_qty += 1
+                cart_items.save()
+                amount = 0.0
+                cart_count = 0
+                cart_product = [p for p in CartItem.objects.all() if p.cart.user == request.user]
+                for p in cart_product:
+                    amt = (p.product_qty * p.product.price)
+                    amount += amt
+                    cart_count += p.product_qty
+
+                # total_offer_price = cart_items.discounted_price
+                total_price, discount_amount, _, total_offer = cart.total_cost
+
+                total_price = Decimal(total_price)
+                total_offer = round(Decimal(total_offer),2)
+                discount_amount = Decimal(discount_amount)
+                grand_total = total_price - total_offer - discount_amount
+                data = {
+                    'success': True,
+                    'quantity':cart_items.product_qty,
+                    'amount':amount,
+                    'offer_discount':total_offer,
+                    'grand_total': round(grand_total, 2),
+                    'cart_count':cart_count,
+                    'coupon_discount': round(discount_amount, 2),
+                }
+                return JsonResponse(data)
+            else:
+                data = {'success': False, 'message': "Your limit reached"}
+                return JsonResponse(data)
         
     else:
         return JsonResponse({'error': 'Invalid request method'})        
@@ -226,11 +263,22 @@ def minus_cart(request):
                         amt = (p.product_qty * p.product.price)
                         amount += amt
                         cart_count += p.product_qty
+                    # total_offer_price = cart_items.discounted_price
+                    # total_offer_price = cart_items.discounted_price
+                    total_price, discount_amount, _, total_offer = cart.total_cost
+
+                    total_price = Decimal(total_price)
+                    total_offer = round(Decimal(total_offer),2)
+                    discount_amount = Decimal(discount_amount)
+                    grand_total = total_price - total_offer - discount_amount
                     data = {
                         'success': True,
                         'quantity':cart_items.product_qty,
                         'amount':amount,
+                        'offer_discount':total_offer,
+                        'grand_total': round(grand_total, 2),
                         'cart_count':cart_count,
+                        'coupon_discount': round(discount_amount, 2),
                     }
                     return JsonResponse(data)
                 else:
@@ -257,9 +305,12 @@ def remove_cart(request):
             amt = (p.product_qty * p.product.price)
             amount += amt
             cart_count += p.product_qty
+        _, _, _, total_offer = cart.total_cost
+        
         data = {
             'amount':amount,
             'cart_count':cart_count,
+            'offer_discount':total_offer,
         }
         return JsonResponse(data)
 
@@ -272,7 +323,16 @@ def checkout(request):
         except Cart.DoesNotExist:
             cart = Cart.objects.create(user=request.user) 
         cart_items = cart.cartitem_set.all()
-        total_price, discount_amount, grand_total = cart.total_cost #fetching from model defenition total cost
+
+        total_offer_price = 0 
+        for item in cart_items:
+            total_offer_price += item.discounted_price #calculating offer applied price of all products in cart
+
+        total_price, discount_amount, _, total_offer = cart.total_cost #fetching from model defenition total cost
+        discount_amount = Decimal(discount_amount)
+        total_price = Decimal(total_price)
+        total_offer = round(Decimal(total_offer),2)
+        grand_total = total_price - total_offer - discount_amount
     except CartItem.DoesNotExist:
         # If cart is empty, redirect to cart page
         return redirect('showcart')
@@ -297,9 +357,10 @@ def checkout(request):
             selected_address = Address.objects.get(pk=selected_address_id)
             neworder = Order(user=request.user, payment_mode=payment_mode, address=selected_address)
             neworder.total_price = total_price
-            neworder.discount_price = discount_amount
+            neworder.coupon_discount_price = discount_amount
+            neworder.offer_discount_price = total_offer
             grand_total = neworder.grand_total
-            request.session['total_price'] = neworder.total_price
+            # request.session['total_price'] = neworder.total_price
 
             # tracking number
             track_no = str(request.user.username) + str(random.randint(1111111, 9999999))
@@ -352,7 +413,7 @@ def checkout(request):
         # for item in cart_items:
         #     total_price += item.product.price * item.product_qty
         
-        context = {'form':form, 'addresses':addresses,'cartitems':cart_items, 'total_price':total_price, 'discount_amount':discount_amount, 'grand_total':grand_total}
+        context = {'form':form, 'addresses':addresses,'cartitems':cart_items, 'total_price':total_price, 'discount_amount':round(discount_amount, 2), 'offer_discount': total_offer, 'grand_total':round(grand_total, 2)}
         return render(request, "store/checkout.html", context)
     
 
@@ -368,12 +429,13 @@ def razorpaycheck(request):
             if address_:
                 address_['phone'] = str(address_['phone'])
                 cart = Cart.objects.get(user=request.user)
-                total_price, discount_amount, grand_total = cart.total_cost
+                total_price, discount_amount, grand_total, total_offer = cart.total_cost
+                total_after_offer = total_price - total_offer - discount_amount
                 # cart_items = cart.cartitem_set.all()
                 # total_price = cart.total_cost
                 # for item in cart_items:
                 #     total_price = total_price + item.product.price * item.product_qty
-                data = {'total_price': grand_total, 'address': address_}
+                data = {'total_price': total_after_offer, 'address': address_}
                 
                 return JsonResponse(data)
             else:
@@ -462,6 +524,7 @@ def wishlist(request):
         wishlist = Wishlist.objects.create(user=request.user) 
 
     wishlist_items = WishlistItem.objects.filter(wishlist=wishlist)
+    
 
     context = {
         "wishlist":wishlist,

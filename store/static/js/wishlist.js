@@ -56,6 +56,7 @@ $('.add-to-wishlist-cart').click(function (event) {
     event.preventDefault();
 
     var productId = $(this).data('wishlist_items');
+    var addToCartBtn = this
 
     $.ajax({
         url: '/add-to-cart',
@@ -68,6 +69,8 @@ $('.add-to-wishlist-cart').click(function (event) {
             console.log('Product added to cart:', response);
             alertify.success(response.message);
             document.getElementById("cart-counter").innerText = response.cart_counter
+            addToCartBtn.parentNode.parentNode.remove()
+                location.reload();
         },
         error: function (xhr, status, error) {
             console.error('Error adding product to cart:', error);

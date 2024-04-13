@@ -1,5 +1,5 @@
 from .models import Cart, Product, Wishlist
-from .filters import ProductFilter
+# from .filters import ProductFilter
 
 # navbar
 def cart_count(request):
@@ -16,11 +16,11 @@ def cart_count(request):
 
     return {'cart_count': cart_count}
 
-def filter_context(request):
-    product = Product.objects.all()
-    myfilter = ProductFilter(request.GET, queryset=product)
-    filtered_products = myfilter.qs
-    return {'myfilter': myfilter}
+# def filter_context(request):
+#     product = Product.objects.all()
+#     myfilter = ProductFilter(request.GET, queryset=product)
+#     filtered_products = myfilter.qs
+#     return {'myfilter': myfilter}
 
 def wishlist_count(request):
     if request.user.is_authenticated:
