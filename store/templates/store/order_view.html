@@ -90,6 +90,9 @@
                                             <td>
                                                 <h5 class="text-primary">Payment Mode: {{ order.payment_mode }}</h5>
                                                 <h5 class="text-primary">Tracking No.: {{ order.tracking_no }}</h5>
+                                                {% if order.payment == 2 %}
+                                                <a href="{{ generate_invoice_url }}" class="btn btn-primary">Download Invoice</a>
+                                                {% endif %}
                                             </td>
                                             <td></td>
                                             <td></td>

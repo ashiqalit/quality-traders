@@ -50,6 +50,13 @@ urlpatterns = [
     # path ('edit_order/<int:pk>/', views.change_order_status, name = 'edit_order'),
     path ('cancel_order/', views.cancel_order, name = 'cancel_order'),
     # path('update_order_status/<int:order_pk>/<str:new_status>/', views.update_order_status, name='update_order_status'),
+
+#reports
+    path ('salesreport/', views.list_sales, name = 'read_sales'),
+
+# Generating pdf sales report
+    path('generate_sales_report_pdf/', views.DownloadPDF.as_view(), name = 'generate_sales_report_pdf'),
+    path('generate_sales_report_excel/', views.download_excel, name = 'generate_sales_report_excel'),
 ]
 
 if settings.DEBUG:

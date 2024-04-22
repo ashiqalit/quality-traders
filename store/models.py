@@ -217,6 +217,12 @@ class Order(models.Model):
         (6,'Return'),
     )
     status = models.IntegerField(choices=order_status, default=1)
+    payment_status = (
+        (1,'Pending'),
+        (2,'Success'),
+        (3,'Failed'),
+    )
+    payment = models.IntegerField(choices=payment_status, default=1)
     message = models.TextField(null=True)
     tracking_no = models.CharField(max_length=250, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -236,6 +242,12 @@ class Order(models.Model):
         grand_total = 0
         grand_total = round(Decimal(self.total_price - self.coupon_discount_price - self.offer_discount_price),2) 
         return grand_total
+    
+    @property
+    def total_discount(self):
+        total_discount = 0
+        total_discount = self.coupon_discount_price + self.offer_discount_price
+        return total_discount
     
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)

@@ -10,7 +10,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.core.files.storage import FileSystemStorage
 from django.db import transaction
-# from .forms import UserForm
+from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
+
 
 # Create your views here.
 @login_required(login_url="dashboard_login")
@@ -283,7 +285,93 @@ def drop_brand(request):
 # orders...........................................................................
 @login_required(login_url="dashboard_login")
 def list_orders(request):
-    orders = Order.objects.all()
+    sales_from = request.GET.get("sales_from")
+    sales_to = request.GET.get("sales_to")
+
+    if 'today' in request.GET:
+        today = str(datetime.now().date())
+        sales_from = today
+        sales_to = today
+
+    if 'yesterday' in request.GET:
+        yesterday = str(datetime.now().date() - timedelta(days=1))
+        sales_from = yesterday
+        sales_to = yesterday
+    
+    if 'last_seven' in request.GET:
+        sales_from = str(datetime.now().date() - timedelta(days=7))
+        sales_to = str(datetime.now().date()) 
+    
+    if 'last_thirty' in request.GET:
+        thirty_days_ago = str(datetime.now().date() - timedelta(days=30))
+        sales_from = thirty_days_ago
+        sales_to = str(datetime.now().date())
+    
+    if 'last_month' in request.GET:
+            # Calculate the first day of the previous month
+            first_day_of_last_month = datetime.now().date() - relativedelta(months=1)
+            first_day_of_last_month = first_day_of_last_month.replace(day=1)
+            # Calculate the last day of the previous month
+            last_day_of_last_month = first_day_of_last_month + relativedelta(day=31)
+            # Adjust the last day to the actual last day of the month
+            # last_day_of_last_month = last_day_of_last_month - timedelta(days=last_day_of_last_month.day)
+            
+            sales_from = str(first_day_of_last_month)
+            sales_to = str(last_day_of_last_month)
+
+    if 'this_week' in request.GET:
+        # Get today's date
+        today = datetime.now().date()
+        # Calculate the start of the current week (Monday)
+        start_of_week = today - timedelta(days=today.weekday())
+        # Calculate the end of the current week (Sunday)
+        end_of_week = start_of_week + timedelta(days=6)
+
+        sales_from = str(start_of_week)
+        sales_to = str(end_of_week)
+    
+    if 'this_month' in request.GET:
+        # Get today's date
+        today = datetime.now().date()
+        # Calculate the first day of the current month
+        first_day_of_month = today.replace(day=1)
+        # Calculate the last day of the current month
+        if today.month == 12:
+            last_day_of_month = today.replace(year=today.year + 1, month=1, day=1) - timedelta(days=1)
+        else:
+            last_day_of_month = today.replace(month=today.month + 1, day=1) - timedelta(days=1)
+
+        sales_from = str(first_day_of_month)
+        sales_to = str(last_day_of_month)
+
+    if sales_from and sales_to:
+        # Add one day to sales_to to include it in the range
+        sales_to_modified = datetime.strptime(sales_to, "%Y-%m-%d") + timedelta(days=1)
+        orders = (
+            Order.objects.all()
+            .order_by("-created_at")
+            .filter(
+                created_at__range=[sales_from, sales_to_modified],
+                )
+        )
+    elif sales_from:
+        orders = (
+            Order.objects.all()
+            .order_by("-created_at")
+            .filter(
+                created_at__gte=sales_from,
+                )
+        )
+    elif sales_to:
+        orders = (
+            Order.objects.all()
+            .order_by("-created_at")
+            .filter(
+                created_at__lte=sales_to,
+                )
+        )
+    else:
+        orders = Order.objects.all().order_by("-created_at")
     context = {'orders':orders}
     return render(request, 'dashboard/other/orderlist.html', context)
 
@@ -295,6 +383,9 @@ def edit_order(request, pk):
         form = OrderForm(request.POST, instance=order)
         if form.is_valid():
             form.save()
+            if order.status == 4 and order.payment != 2:
+                order.payment = 2
+                order.save()
             return redirect('read_orders')
         else:
             messages.info(request, 'Form invalid')
@@ -327,3 +418,237 @@ def cancel_order(request):
         
         return JsonResponse({'success':True})
     return JsonResponse({'success':False})
+
+# Take pdf sales report
+from django.shortcuts import render
+from io import BytesIO
+from django.http import HttpResponse
+from django.template.loader import get_template
+from django.views import View
+from xhtml2pdf import pisa
+
+def render_to_pdf(template_src, context_dict={}):
+    template = get_template(template_src)
+    html = template.render(context_dict)
+    result = BytesIO()
+    pdf = pisa.pisaDocument(BytesIO(html.encode("ISO-8859-1")), result)
+    if not pdf.err:
+        return HttpResponse(result.getvalue(), content_type="application/pdf")
+    return None
+
+class DownloadPDF(View):
+    def get(self, request, *args, **kwargs):
+
+        sales_from = request.GET.get("sales_from")
+        sales_to = request.GET.get("sales_to")     
+
+        sales_to_datetime = datetime.strptime(sales_to, '%Y-%m-%d')
+        sales_to_modified = sales_to_datetime + timedelta(days=1)
+
+        if sales_from == "":
+            sales_from = datetime.now() - timedelta(days=3 * 365)
+        if sales_to == "":
+            sales_to = datetime.now()
+
+        orders = (
+            Order.objects.all()
+            .order_by("-created_at")
+            .filter(created_at__range=[sales_from, sales_to_modified])
+        )
+
+        # Calculate total amount of the sale of the selected range
+        total_amount = sum(item.grand_total for item in orders)
+        total_discount = sum(round(float(item.total_discount),2) for item in orders)
+        total_amount_without_discount = sum(item.total_price for item in orders)
+        offer_amount = sum(item.offer_discount_price for item in orders)
+        coupon_amount = sum(item.coupon_discount_price for item in orders)
+
+        data = {
+            "company":"Quality Traders",
+            "address":"Perinthalmanna Road, Pulamanthole",
+            "city":"Malappuram",
+            "state":"Kerala",
+            "zipcode":"679309",
+            "orders":orders,
+            "phone":"9999999999",
+            "email":"qualitytraders@gmail.com",
+            "website":"www.qualitytraders.com",
+            "total_amount":total_amount,
+            "offer_amount":offer_amount,
+            "coupon_amount":coupon_amount,
+            "total_discount":total_discount,
+            "total_amount_without_discount":total_amount_without_discount,
+        }
+
+        pdf = render_to_pdf("dashboard/other/salesreport.html", data)
+        return HttpResponse(pdf, content_type='application/pdf')
+
+        # force download
+        
+        # response = HttpResponse(pdf, content_type="application/pdf")
+        # filename = f"Sales Report (datetime.now()).pdf"
+        # content = "attachment; filename=%s" % (filename)
+        # response['Content-Disposition'] = content
+        # return response
+
+# Download Excel sales report
+import xlwt
+def download_excel(request):
+    response = HttpResponse(content_type="application/ms-excel")
+    response["Content-Disposition"] = (
+        "attachment; filename=SalesReport-" + str(datetime.now()) + "-.xls"
+    )
+    wb = xlwt.Workbook(encoding="utf-8")
+    ws = wb.add_sheet("SalesReport")
+    row_num = 0
+    font_style = xlwt.XFStyle()
+    font_style.font.bold = True
+    columns = [
+        "Order ID",
+        "User",
+        "Date",
+        "Time",
+        "Product",
+        "Quantity",
+        "Price",
+        "Payment Method",
+    ]
+    for col_num in range(len(columns)):
+        ws.write(row_num, col_num, columns[col_num], font_style)
+    
+    sales_from = request.GET.get("sales_from")
+    sales_to = request.GET.get("sales_to")
+
+    sales_to_datetime = datetime.strptime(sales_to, '%Y-%m-%d')
+    sales_to_modified = sales_to_datetime + timedelta(days=1)
+
+    if not sales_from:
+        sales_from = datetime.now() - timedelta(days=3 * 365)
+    
+    if not sales_to:
+        sales_to = datetime.now()
+    
+    orders = (
+        Order.objects.all()
+        .order_by("-created_at")
+        .filter(created_at__range=[sales_from, sales_to_modified])
+        .values_list(
+            "tracking_no",
+            "user__username",
+            "created_at__date",
+            "created_at__time",
+            "orderitem__product__name",
+            "orderitem__quantity",
+            "orderitem__price",
+            "payment_mode",
+        )
+    )
+    for order in orders:
+        row_num += 1
+        for col_num in range(len(order)):
+            ws.write(row_num, col_num, str(order[col_num]), font_style)
+    
+    wb.save(response)
+    return response
+
+@login_required(login_url="dashboard_login")
+def list_sales(request):
+    # orders = Order.objects.all()
+    # context = {'orders':orders}
+
+    sales_from = request.GET.get("sales_from")
+    sales_to = request.GET.get("sales_to")
+
+    if 'today' in request.GET:
+        today = str(datetime.now().date())
+        sales_from = today
+        sales_to = today
+
+    if 'yesterday' in request.GET:
+        yesterday = str(datetime.now().date() - timedelta(days=1))
+        sales_from = yesterday
+        sales_to = yesterday
+    
+    if 'last_seven' in request.GET:
+        sales_from = str(datetime.now().date() - timedelta(days=7))
+        sales_to = str(datetime.now().date()) 
+    
+    if 'last_thirty' in request.GET:
+        thirty_days_ago = str(datetime.now().date() - timedelta(days=30))
+        sales_from = thirty_days_ago
+        sales_to = str(datetime.now().date())
+    
+    if 'last_month' in request.GET:
+            # Calculate the first day of the previous month
+            first_day_of_last_month = datetime.now().date() - relativedelta(months=1)
+            first_day_of_last_month = first_day_of_last_month.replace(day=1)
+            # Calculate the last day of the previous month
+            last_day_of_last_month = first_day_of_last_month + relativedelta(day=31)
+            # Adjust the last day to the actual last day of the month
+            # last_day_of_last_month = last_day_of_last_month - timedelta(days=last_day_of_last_month.day)
+            
+            sales_from = str(first_day_of_last_month)
+            sales_to = str(last_day_of_last_month)
+
+    if 'this_week' in request.GET:
+        # Get today's date
+        today = datetime.now().date()
+        # Calculate the start of the current week (Monday)
+        start_of_week = today - timedelta(days=today.weekday())
+        # Calculate the end of the current week (Sunday)
+        end_of_week = start_of_week + timedelta(days=6)
+
+        sales_from = str(start_of_week)
+        sales_to = str(end_of_week)
+    
+    if 'this_month' in request.GET:
+        # Get today's date
+        today = datetime.now().date()
+        # Calculate the first day of the current month
+        first_day_of_month = today.replace(day=1)
+        # Calculate the last day of the current month
+        if today.month == 12:
+            last_day_of_month = today.replace(year=today.year + 1, month=1, day=1) - timedelta(days=1)
+        else:
+            last_day_of_month = today.replace(month=today.month + 1, day=1) - timedelta(days=1)
+
+        sales_from = str(first_day_of_month)
+        sales_to = str(last_day_of_month)
+    
+    request.session['sales_from'] = sales_from
+    request.session['sales_to'] = sales_to
+
+    if sales_from and sales_to:
+        # Add one day to sales_to to include it in the range
+        sales_to_modified = datetime.strptime(sales_to, "%Y-%m-%d") + timedelta(days=1)
+        sales_report = (
+            Order.objects.all()
+            .order_by("-created_at")
+            .filter(
+                created_at__range=[sales_from, sales_to_modified],
+                payment = 2
+                )
+        )
+    elif sales_from:
+        sales_report = (
+            Order.objects.all()
+            .order_by("-created_at")
+            .filter(
+                created_at__gte=sales_from,
+                payment = 2
+                )
+        )
+    elif sales_to:
+        sales_report = (
+            Order.objects.all()
+            .order_by("-created_at")
+            .filter(
+                created_at__lte=sales_to,
+                payment = 2
+                )
+        )
+    else:
+        sales_report = Order.objects.all().order_by("-created_at").filter(payment=2)
+    context = {'orders':sales_report}
+    return render(request, 'dashboard/other/saleslist.html', context)
+

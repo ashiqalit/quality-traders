@@ -4,14 +4,20 @@ from django.contrib import messages
 from store.models import Category, Brand, Product, Cart, CartItem, Order, OrderItem, Address, Coupon, Wishlist, WishlistItem, Wallet
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseNotFound, HttpResponse
 import random
 from .forms import AddressForm
 from django.db import transaction
 # from .filters import ProductFilter
 from decimal import Decimal
 # from .context_processors import filter_context
-from django.template.loader import render_to_string
+from django.template.loader import render_to_string, get_template
+from django.views.generic import View
+
+# for pdf invoice
+from io import BytesIO
+from xhtml2pdf import pisa
+import os
 
 
 # Create your views here.
@@ -314,6 +320,47 @@ def remove_cart(request):
         }
         return JsonResponse(data)
 
+def render_to_pdf(template_src, context_dict={}):
+    template = get_template(template_src)
+    html = template.render(context_dict)
+    result = BytesIO()
+    pdf = pisa.pisaDocument(BytesIO(html.encode("utf-8")), result) #link_callback = fetch_resources
+    if not pdf.err:
+        return HttpResponse(result.getvalue(), content_type='application/pdf')
+    return None
+
+class GenerateInvoice(View):
+    def get(self, request, pk, *args, **kwargs):
+        try:
+            order_db = Order.objects.get(id=pk, user=request.user, payment=2)
+        except Order.DoesNotExist as e:
+            print("Error:", e)  # Print the error message
+            return HttpResponseNotFound()
+        
+        data = {
+            'order_id': order_db.tracking_no,
+            'transaction_id': order_db.payment_id,
+            'user_mail': order_db.user.email,
+            'date': order_db.created_at,
+            'name': order_db.user.username,
+            'order': order_db,
+            'amount': order_db.grand_total,
+            'offer': order_db.offer_discount_price,
+            'coupon': order_db.coupon_discount_price,
+        }
+        pdf = render_to_pdf('store/invoice2.html', data)
+        return HttpResponse(pdf, content_type='application/pdf')
+        
+        # force download
+        # if pdf:
+        #     response = HttpResponse(pdf, content_type='application/pdf')
+        #     filename = "Invoice_%s.pdf" %(data['order_id'])
+        #     content = "inline; filename='%s'"%(filename)
+        #     content = "attachment; filename='%s'"%(filename)
+        #     response['Content-Disposition'] = content
+        #     return response
+        # return HttpResponse("Not found")
+
 # checkout
 @login_required(login_url="login")
 def checkout(request):
@@ -359,6 +406,8 @@ def checkout(request):
             neworder.total_price = total_price
             neworder.coupon_discount_price = discount_amount
             neworder.offer_discount_price = total_offer
+            if payment_mode != 'COD':
+                neworder.payment = 2
             grand_total = neworder.grand_total
             # request.session['total_price'] = neworder.total_price
 
@@ -395,6 +444,7 @@ def checkout(request):
             #     messages.success(request, "Your order has been placed successfully")
             #     return redirect('orderview', t_no=neworder.tracking_no)
             if payment_mode == "Razorpay":
+                invoice_url = reverse('generate_invoice', kwargs={'pk': neworder.pk})
 
                 return JsonResponse({'status':"Your order has been placed successfully", 't_no':neworder.tracking_no})
             messages.success(request, "Your order has been placed successfully")
@@ -435,7 +485,7 @@ def razorpaycheck(request):
                 # total_price = cart.total_cost
                 # for item in cart_items:
                 #     total_price = total_price + item.product.price * item.product_qty
-                data = {'total_price': total_after_offer, 'address': address_}
+                data = {'total_price': int(total_after_offer), 'address': address_}
                 
                 return JsonResponse(data)
             else:
@@ -448,8 +498,12 @@ def view_order(request, t_no):
     order = Order.objects.filter(tracking_no=t_no).filter(user=request.user).first()
     grand_total = order.grand_total
     orderitems = OrderItem.objects.filter(order=order)
-    context = {'order':order, 'orderitems':orderitems, 'grand_total':grand_total}
+    generate_invoice_url = reverse('generate_invoice', kwargs={'pk': order.pk})
+    context = {'order':order, 'orderitems':orderitems, 'grand_total':grand_total, 'generate_invoice_url':generate_invoice_url}
     return render(request, "store/order_view.html", context)
+
+
+
 
 @login_required(login_url="login")
 def cancel_order(request):

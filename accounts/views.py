@@ -122,4 +122,6 @@ def profile_orders(request):
     orders = Order.objects.filter(user = request.user)
     context = {'orders':orders,}
     return render(request, 'store/edit_orders_profile.html', context)
+
+
     

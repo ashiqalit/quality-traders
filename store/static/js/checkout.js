@@ -34,12 +34,13 @@ $('.pay_with_razorpay').click(function (e) {
                     "image": "https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.svgrepo.com%2Fsvg%2F52605%2Fbill&psig=AOvVaw1GgGA5LKFC3Fn_MUhuJFlo&ust=1712034347561000&source=images&cd=vfe&opi=89978449&ved=0CBIQjRxqFwoTCNCat5ufoIUDFQAAAAAdAAAAABAE",
                     // "order_id": response.order.id,
                     "handler": function (responseb) {
-                        alert(responseb.razorpay_payment_id);
+                        // alert(responseb.razorpay_payment_id);
                         data1 = {
                             "selected_address": selectedAddress.val(),
                             "payment_mode": payment_mode,
                             "payment_id": responseb.razorpay_payment_id,
                             csrfmiddlewaretoken: csrftoken,
+                            
                         }
                         $.ajax({
                             method: "POST",

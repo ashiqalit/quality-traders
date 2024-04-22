@@ -35,5 +35,7 @@ urlpatterns = [
     #wallet
     path('wallet', views.wallet, name='wallet'),
 
+    # Generating Invoice
+    path('generate_invoice/<int:pk>/', views.GenerateInvoice.as_view(), name = 'generate_invoice'),
 
 ]
