@@ -1,18 +1,18 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages, admin
 from django.contrib.auth.models import User, Group  
-from store.models import Category, Product, Sub_category, Brand, Order, OrderItem
+from store.models import Category, Product, Sub_category, Brand, Order, OrderItem, ReturnRequest, Wallet, WalletTransaction
 from django.contrib import auth
 from .filters import UserFilter,CategoryFilter,ProductFilter, SubCategoryFilter, BrandFilter
 from .forms import CategoryForm, ProductForm, SubCategoryForm, BrandForm, OrderForm
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseNotAllowed
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.core.files.storage import FileSystemStorage
 from django.db import transaction
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
-
+from django.contrib.admin.views.decorators import staff_member_required
 
 # Create your views here.
 @login_required(login_url="dashboard_login")
@@ -418,6 +418,58 @@ def cancel_order(request):
         
         return JsonResponse({'success':True})
     return JsonResponse({'success':False})
+
+@login_required(login_url="dashboard_login")
+def return_requests_list(request):
+    pending_return_requests = ReturnRequest.objects.filter(status=1)
+    context = {
+        'pending_return_requests':pending_return_requests,
+    }
+    return render(request, 'dashboard/other/returnrequests.html', context)
+
+@login_required(login_url="dashboard_login")
+def approve_return_request(request, return_request_id):
+    return_request = ReturnRequest.objects.get(id=return_request_id)
+    return_request.status = 2
+    return_request.order.status = 6
+    return_request.order.save()
+    return_request.save()
+    
+    # Returning paid amount to wallet
+    order = return_request.order
+    try:
+        wallet = Wallet.objects.get(user=request.user)
+    except:
+        wallet = Wallet.objects.create(user=request.user)
+    wallet_transaction = WalletTransaction.objects.create(
+        wallet = wallet,
+        order = order,
+        amount = order.grand_total,
+        status = 'Order return amount credited'
+    )
+    wallet_transaction.save()
+
+    # Increment product quantities
+    order_items = order.orderitem_set.all()
+    for order_item in order_items:
+        product = order_item.product
+        product.quantity += order_item.quantity
+        product.save()
+    
+    return redirect('read_return_requests')
+
+@login_required(login_url="dashboard_login")
+def reject_return_request(request, return_request_id):
+    if request.method == 'POST':
+        return_request = ReturnRequest.objects.get(id=return_request_id)
+        return_request.status = 3
+        return_request.order.status = 7
+        rejection_message = request.POST.get('rejection_message')
+        return_request.rejection_message = rejection_message
+        return_request.save()
+        return redirect('read_return_requests')
+    else:
+        return HttpResponseNotAllowed(['POST'])
 
 # Take pdf sales report
 from django.shortcuts import render

@@ -24,8 +24,13 @@
                                     <div class="col-md-12 orders">
                                         <div class="panel panel-default">
                                             <div class="panel-heading">
-                                                {% if wallets %}
-                                                <h3>Your Wallet</h3>
+                                                {% if wallet_transactions %}
+                                                <div class="col-xs-6">
+                                                    <h3>Your Wallet</h3>
+                                                </div>
+                                                <div class="col-xs-6 text-right">
+                                                    <h3>Total: {{ total_amount }}</h3>
+                                                </div>
                                                 {% else %}
                                                 <h3>No wallet amount available </h3>
                                                 {% endif %}
@@ -41,11 +46,11 @@
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        {% for wallet in wallets%}
+                                                        {% for transaction in wallet_transactions%}
                                                         <tr>
-                                                            <td>{{wallet.created_at}}</td>
-                                                            <td>{{wallet.status}}</td>
-                                                            <td>{{wallet.amount}}</td>
+                                                            <td>{{transaction.created_at}}</td>
+                                                            <td>{{transaction.status}}</td>
+                                                            <td>{{transaction.amount}}</td>
                                                         </tr>
                                                         {% endfor %}
                                                     </tbody>

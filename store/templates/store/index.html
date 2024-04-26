@@ -85,5 +85,30 @@
 {% block scripts %}
 
     <script src="{% static 'js/filter.js' %}"></script>
+    <script>
+        function copyReferralCode() {
+          const referralCode = document.getElementById("referral_code").textContent; // Get code from hidden element
+          navigator.clipboard.writeText(referralCode)
+            .then(() => {
+                Swal.fire({
+                    title: "Referral code copied to clipboard",
+                    text: "Send to your friend, when they create an account ₹50 will be credited to your wallet",
+                    icon: "success"
+                  });
+            })
+            .catch(err => {
+              console.error("Failed to copy referral code:", err);
+              Swal.fire({
+                title: "Try again",
+                text: "Failed to copy referral code. Please try again.",
+                icon: "Failed"
+              });
+            });
+        }
+        
+        // Add event listener to the button
+        document.querySelector(".get.referral_button").addEventListener("click", copyReferralCode);
+        </script>
+        
 
 {% endblock scripts %}

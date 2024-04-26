@@ -9,6 +9,7 @@ from django.conf import settings
 from phonenumber_field.modelfields import PhoneNumberField
 from django.core.validators import MinValueValidator, MaxValueValidator
 from decimal import Decimal
+from PIL import Image
 
 # Create your models here.
 
@@ -215,6 +216,7 @@ class Order(models.Model):
         (4,'Delivered'),
         (5,'Cancel'),
         (6,'Return'),
+        (7,'Not Returnable'),
     )
     status = models.IntegerField(choices=order_status, default=1)
     payment_status = (
@@ -258,6 +260,21 @@ class OrderItem(models.Model):
     def __str__(self):
         return '{} - {}'.format(self.order.id, self.order.tracking_no)
 
+# order return
+class ReturnRequest(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    request_status = (
+        (1,'Pending'),
+        (2,'Approved'),
+        (3,'Rejected'),  
+    )
+    status = models.CharField(choices=request_status, default=1, max_length=20)
+    rejection_message = models.CharField(max_length=100, null=True)
+
+    def __str__(self):
+        return '{} - {} - {}'.format(self.order.id, self.order.tracking_no, self.user.username)
+
 class Wishlist(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     
@@ -271,13 +288,47 @@ class WishlistItem(models.Model):
     def __str__(self):
         return self.products.name
     
+
 class Wallet(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    # order = models.ForeignKey(Order, on_delete=models.CASCADE, null=True)
+    # created_at = models.DateTimeField(auto_now_add=True)
+    # status = models.CharField(max_length=50, blank=True)
+    # amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    # is_credit = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.user}"
+
+class WalletTransaction(models.Model):
+    wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE)
     order = models.ForeignKey(Order, on_delete=models.CASCADE, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=20, blank=True)
+    status = models.CharField(max_length=50, blank=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     is_credit = models.BooleanField(default=True)
 
     def __str__(self):
-        return f"{self.user} {self.amount} {self.is_credit}"
+        return f"{self.wallet.user} {self.amount} {self.is_credit}"
+    
+class Banner(models.Model):
+    title = models.CharField(max_length=50, null=True, blank=True)
+    sub_title = models.CharField(max_length=50, null=True, blank=True)
+    description = models.CharField(max_length=50, null=True, blank=True)
+    button_text = models.CharField(max_length=15, null=True, blank=True)
+    image = models.ImageField(upload_to='ecommerce/banner_img')
+    is_listed = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.title} {self.sub_title} {self.description}"
+    
+    # def save(self, *args, **kwargs):
+    #     super().save(*args, **kwargs)
+    #     img = Image.open(self.image.path)
+    #     original_width, original_height = img.size
+    #     aspect_ratio = original_width / original_height
+    #     new_height = 400
+    #     new_width = int(new_height * aspect_ratio)
+    #     output_size = (new_width, new_height)
+    #     img.thumbnail(output_size)
+    #     img.save(self.image.path)

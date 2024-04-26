@@ -44,6 +44,7 @@
                                                         </tr>
                                                     </thead>
                                                     <tbody>
+                                                        {% csrf_token %}
                                                         {% for order in orders reversed%}
                                                         <tr>
                                                             <td>{{order.created_at}}</td>
@@ -63,7 +64,7 @@
                                                                 <button class="return_order btn btn-primry"
                                                                 pid="{{order.id}}">Return</button>
                                                                 
-                                                                {% elif order.status == 5 or order.status == 6 %}
+                                                                {% elif order.status == 5 or order.status == 6  or order.status == 7%}
                                                                 <button class="btn btn-default cancel_return"
                                                                 >---</button>
                                                                 {% endif %}

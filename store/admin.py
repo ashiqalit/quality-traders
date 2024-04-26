@@ -14,4 +14,8 @@ admin.site.register(Address)
 admin.site.register(Coupon)
 admin.site.register(Wishlist)
 admin.site.register(WishlistItem)
+admin.site.register(Wallet)
+admin.site.register(WalletTransaction)
+admin.site.register(Banner)
+admin.site.register(ReturnRequest)
 

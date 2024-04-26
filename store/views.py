@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib import messages
-from store.models import Category, Brand, Product, Cart, CartItem, Order, OrderItem, Address, Coupon, Wishlist, WishlistItem, Wallet
+from django.db.models import Sum
+from store.models import Category, Brand, Product, Cart, CartItem, Order, OrderItem, Address, Coupon, Wishlist, WishlistItem, Banner, Wallet, WalletTransaction, ReturnRequest
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse, HttpResponseNotFound, HttpResponse
+from django.http import JsonResponse, HttpResponseNotFound, HttpResponse, HttpResponseBadRequest
 import random
 from .forms import AddressForm
 from django.db import transaction
@@ -13,7 +14,8 @@ from decimal import Decimal
 # from .context_processors import filter_context
 from django.template.loader import render_to_string, get_template
 from django.views.generic import View
-
+from accounts.models import Profile
+import json
 # for pdf invoice
 from io import BytesIO
 from xhtml2pdf import pisa
@@ -22,20 +24,28 @@ import os
 
 # Create your views here.
 
+
 @login_required(login_url="login")
 def home(request):
     category = Category.objects.all()
     brands = Brand.objects.all()
 
     products = Product.objects.all()
+    banner_images = Banner.objects.all()
     
     # myFilter = ProductFilter(request.GET, queryset=products)
     # filterd_products = myFilter.qs
+    # Fetch referral code for the current user's profile
+    current_user_profile = Profile.objects.get(user=request.user)
+    referral_code = current_user_profile.referral_code
 
     context = {
         'category':category,
         'brands':brands,
         'products':products,
+        'banner_images':banner_images,
+        'referral_code':referral_code,
+        'hidden_referral_code': referral_code,
 
     }
     return render(request, 'store/index.html', context)
@@ -524,13 +534,19 @@ def cancel_order(request):
                     product.quantity += order_item.quantity
                     product.save()
                 
-                wallet = Wallet.objects.create(
-                    user = request.user,
+                try:
+                    wallet = Wallet.objects.get(user=request.user)
+                except:
+                    wallet = Wallet.objects.create(user=request.user)
+                
+                wallet_transaction = WalletTransaction.objects.create(
+                    wallet = wallet,
                     order = order,
                     amount = order.grand_total,
-                    status = 'Credited'
+                    status = 'Order cancel amount credited'
                 )
-                wallet.save()
+                wallet_transaction.save()
+
             return JsonResponse({'message': 'Order Cancelled', 'order':order.serialize()})
         except Address.DoesNotExist:
             return JsonResponse({'error': 'Order does not exist'}, status=404)
@@ -539,36 +555,37 @@ def cancel_order(request):
 
 @login_required(login_url="login")
 def return_order(request):
-    if request.method == 'GET':
+    if request.method == 'POST':
         try:
-            order_id = request.GET['order_id']
+            order_id = request.POST.get('order_id')
             order = Order.objects.get(id=order_id, user=request.user)
-            # Start transaction to ensure atomicity
-            with transaction.atomic():
-                # Change order status to 'Cancel'
-                order.status = 5
-                order.save()
-    
-                # Increment product quantities
-                order_items = order.orderitem_set.all()
-                for order_item in order_items:
-                    product = order_item.product
-                    product.quantity += order_item.quantity
-                    product.save()
-                
-                wallet = Wallet.objects.create(
-                    user = request.user,
-                    order = order,
-                    amount = order.grand_total,
-                    status = 'Credited'
-                )
-                wallet.save()
+            
+            defaults = {'user': request.user}  # Additional defaults if needed
+            return_request, created = ReturnRequest.objects.get_or_create(order=order, defaults=defaults)
 
-            return JsonResponse({'message': 'Order will be picked by our staff', 'order':order.serialize()})
-        except Address.DoesNotExist:
+            # Convert status to an integer
+            return_request_status = int(return_request.status)
+
+            if not created:
+              # Existing request found
+                # print(return_request.status)
+                if return_request_status == 1:
+                    return JsonResponse({'error': 'Return request already exists for this order.'}, status=400)
+                elif return_request_status == 3:
+                    return JsonResponse({'error': return_request.rejection_message}, status=400)
+                else:
+                    # Handle other existing request statuses (if any)
+                    return JsonResponse({'error': 'An existing return request is being processed.'}, status=400)
+            else:
+                # New request created
+                return JsonResponse({'message': 'Return request sent for approval', 'status': return_request.status})
+        
+        except Order.DoesNotExist:
             return JsonResponse({'error': 'Order does not exist'}, status=404)
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return HttpResponseBadRequest('Invalid request method')
 
 @login_required(login_url="login")
 def wishlist(request):
@@ -624,8 +641,15 @@ def remove_wishlistitem(request):
 
 @login_required(login_url="login")
 def wallet(request):
-    wallets = Wallet.objects.filter(user=request.user).order_by('-created_at')
+    try:
+        wallet = Wallet.objects.get(user=request.user)
+    except:
+        wallet = Wallet.objects.create(user=request.user)
+    wallet_transactions = WalletTransaction.objects.filter(wallet=wallet).order_by('-created_at')
+    total_amount = WalletTransaction.objects.aggregate(total_amount=Sum('amount'))['total_amount'] or 0.00
     context = {
-        'wallets':wallets
+        'wallet':wallet,
+        'wallet_transactions':wallet_transactions,
+        'total_amount':total_amount,
     }
     return render(request, 'store/wallets.html', context)

@@ -51,6 +51,11 @@ urlpatterns = [
     path ('cancel_order/', views.cancel_order, name = 'cancel_order'),
     # path('update_order_status/<int:order_pk>/<str:new_status>/', views.update_order_status, name='update_order_status'),
 
+# order returns
+    path ('return_orders/', views.return_requests_list, name = 'read_return_requests'),
+    path ('approve_return_request/<int:return_request_id>/', views.approve_return_request, name = 'approve_return_request'),
+    path ('reject_return_request/<int:return_request_id>/', views.reject_return_request, name = 'reject_return_request'),
+
 #reports
     path ('salesreport/', views.list_sales, name = 'read_sales'),
 

@@ -1,0 +1,181 @@
+{% extends "dashboard/layouts/main-admin.html" %}
+{% block content %}
+{% load static %}
+
+<div class="page-wrapper">
+    <div class="content">
+        <div class="page-header">
+            <div class="page-title">
+                <h4>Return Order Requests</h4>
+                <h6>Manage your returns</h6>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="table-top">
+                    <!-- <div class="search-set">
+                        <div class="search-path">
+                            <a class="btn btn-filter" id="filter_search">
+                                <img src="{% static 'assets/img/icons/filter.svg' %}" alt="img">
+                                <span><img src="{% static 'assets/img/icons/closes.svg' %}" alt="img"></span>
+                            </a>
+                        </div>
+                        <div class="search-input">
+                            <a class="btn btn-searchset"><img src="{% static 'assets/img/icons/search-white.svg' %}"
+                                    alt="img"></a>
+                        </div>
+                    </div> -->
+                    <!-- <div class="filterset">
+                        <ul>
+                            <li>
+                                <form action="" method="get">
+                                    <div class="btn-group" role="group" aria-label="Basic outlined example">
+                                        <button type="submit" name="today" class="btn btn-outline-secondary">Today</button>
+                                        <button type="submit" name="yesterday" class="btn btn-outline-secondary">Yesterday</button>
+                                        <button type="submit" name="last_seven" class="btn btn-outline-secondary">Last 7 days</button>
+                                        <button type="submit" name="last_thirty" class="btn btn-outline-secondary">Last 30 days</button>
+                                        <button type="submit" name="last_month" class="btn btn-outline-secondary">Last Month</button>
+                                        <button type="submit" name="this_week" class="btn btn-outline-secondary">This week</button>
+                                        <button type="submit" name="this_month" class="btn btn-outline-secondary">This Month</button>
+                                        <button type="button" name="" class="btn btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#customFilters" aria-expanded="false" 
+                                        aria-controls="customFilters">Custom</button>
+                                    </div>
+                                </form>
+                            </li>
+                            <li>
+                                <div class="collapse" id="customFilters">
+                                    <form action="" method="get">
+                                        <div class="d-flex justify-content-start align-items-center my-1">
+                                            <label for="sales_from" class="mx-3">From:</label>
+                                            <input type="date" name="sales_from" id="" class="form-control">
+                                            <label for="sales_to" class="mx-3">To:</label>
+                                            <input type="date" name="sales_to" id="" class="form-control">
+                                            <button type="submit" class="ms-3 btn btn-outline-secondary">Filter</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </li>
+                        </ul>
+                    </div> -->
+                    <!-- <div class="wordset">
+                        <ul>
+                            <li>
+                                <a data-bs-toggle="tooltip" data-bs-placement="top" title="pdf"><img
+                                        src="{% static 'assets/img/icons/pdf.svg' %}" alt="img"></a>
+                            </li>
+                            <li>
+                                <a data-bs-toggle="tooltip" data-bs-placement="top" title="excel"><img
+                                        src="{% static 'assets/img/icons/excel.svg' %}" alt="img"></a>
+                            </li>
+                            <li>
+                                <a data-bs-toggle="tooltip" data-bs-placement="top" title="print"><img
+                                        src="{% static 'assets/img/icons/printer.svg' %}" alt="img"></a>
+                            </li>
+                        </ul>
+                    </div> -->
+                </div>
+
+                <div class="table-responsive">
+                    {% if pending_return_requests is empty %}
+                    <h3>No return requests</h3>
+                    {% endif %}
+
+                    <table class="table datanew">
+                        <thead>
+                            <tr>
+                                <th>Tracking Number</th>
+                                <th>Products</th>
+                                <th>Customer Name</th>
+                                <th>Approval</th>
+                                <th>Rejection</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for return_request in pending_return_requests %}
+                            <tr>
+                                <td>{{ return_request.order.tracking_no }}</td>
+                                <td class="productimgname">
+                                    <ul>
+                                        {% for order_item in return_request.order.orderitem_set.all %}
+                                        <li>
+                                            <div class="productimgname">
+                                                <a href="javascript:void(0);" class="product-img">
+                                                    <img src="{{ order_item.product.image.url }}" alt="product">
+                                                </a>
+                                                <a href="javascript:void(0);">{{ order_item.product.name }}</a>
+                                            </div>
+
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </td>
+                                <td>{{ return_request.user.username }}</td>
+                                <td>
+                                    <form action="{% url 'approve_return_request' return_request.id %}" method="post">
+                                        {% csrf_token %}
+                                        <button type="submit">Approve</button>
+                                    </form>
+                                </td>
+                                <td>
+                                    <form action="{% url 'reject_return_request' return_request.id %}" method="post">
+                                        {% csrf_token %}
+                                        <!-- <button type="submit">Reject</button> -->
+                                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" data-bs-whatever="@getbootstrap">Reject</button>
+                                        <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                              <div class="modal-content">
+                                                <div class="modal-header">
+                                                  <h1 class="modal-title fs-5" id="exampleModalLabel">Rejection Message</h1>
+                                                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                  <form>
+                                                    <div class="mb-3">
+                                                      <label for="message-text" class="col-form-label">Message:</label>
+                                                      <textarea class="form-control" id="message-text" name="rejection_message"></textarea>
+                                                    </div>
+                                                  </form>
+                                                </div>
+                                                <div class="modal-footer">
+                                                  <button type="submit" class="btn btn-primary">Reject</button>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          </div>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            
+                        </tbody>
+                    </table>
+                    
+
+                    
+
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock content %}
+{% block script %}
+<script>
+    var cancelOrderUrl = "{% url 'cancel_order' %}";
+
+    $('[data-target="#return-request-modal-{{ loop.counter }}"]').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget) // Button that triggered the modal
+        var recipient = button.data('whatever') // Extract info from data-* attributes
+        // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
+        // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
+        var modal = $(this)
+        modal.find('.modal-title').text('New message to ' + recipient)
+        modal.find('.modal-body input').val(recipient)
+      })
+      
+</script>
+{% endblock script %}

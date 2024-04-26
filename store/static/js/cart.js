@@ -230,33 +230,42 @@ $('.return_order').click(function (e) {
     var buttonsCell = $(this).closest('tr').find('.buttons');
 
     $.ajax({
-        type: "GET",
+        type: "POST",
         url: "/return-order",
         data: {
             order_id: id,
+            csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val(),
         },
         success: function (response, data) {
             if (response) {
-                orderStatusCell.text('Return');
+                // orderStatusCell.text('Return');
                 Swal.fire({
                     title: 'Returning order',
                     description: response.message,
                     icon: "success"
-                }).then(function () {
+                })
+                // .then(function () {
 
-                    $.get(window.location.href, function (data) {
-                        var cancelledMsgButton = $('<button class="btn btn-default cancel_return">---</button>');
-                        buttonsCell.find('.return_order').replaceWith(cancelledMsgButton);
-                        setButtonWidth('.buttons');
-                    });
-                });
+                //     $.get(window.location.href, function (data) {
+                //         var cancelledMsgButton = $('<button class="btn btn-default cancel_return">---</button>');
+                //         buttonsCell.find('.return_order').replaceWith(cancelledMsgButton);
+                //         setButtonWidth('.buttons');
+                //     });
+                // });
 
 
             }
 
         },
         error: function (xhr, status, error) {
-            console.error('Error deleting the address:', error);
+            if (xhr.status === 400) {
+                Swal.fire({
+                    title: xhr.responseJSON.error,
+                    icon: "error"
+                });
+            } else {
+                console.error('Error in returning the order:', error);
+            }
         }
     });
 });

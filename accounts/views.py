@@ -4,7 +4,7 @@ from django.contrib.auth import authenticate,login,logout
 from django.contrib.auth.decorators import login_required
 from .forms import CreateUserForm, UserUpdateForm, ProfileUpdateForm
 from store.forms import AddressForm
-from store.models import Address, Order, OrderItem, Cart, CartItem
+from store.models import Address, Order, OrderItem, Cart, CartItem, Wallet, WalletTransaction
 from accounts.models import Profile
 from django.http import JsonResponse
 # Create your views here.
@@ -18,9 +18,38 @@ def registerpage(request):
         if request.method=='POST':
             form = CreateUserForm(request.POST)
             if form.is_valid():
-                form.save()
-                messages.info(request, 'User created successfully')
-                return redirect('login')
+                wallet = Wallet.objects.create(user=request.user)
+                wallet.save()
+                referred_code = form.cleaned_data['referred_code']
+                #checks if referral code entered 
+                if referred_code: 
+                    #if entered a code that does not exist with any user return an error
+                    if not Profile.objects.filter(referral_code=referred_code).exists():
+                        messages.error(request,"Referral code does not exists")
+                        return redirect('register')
+                    #if the entered referral code is correct then,
+                    #form should be saved
+                    #money should be added to the sender and reciever
+                    else:
+                        form.save()
+                        messages.info(request, 'User created successfully')
+                        referred_user_profile = Profile.objects.filter(referral_code=referred_code).first()
+                        referred_user = referred_user_profile.user
+                        try:
+                            user_wallet = Wallet.objects.get(user=referred_user)
+                        except:
+                            user_wallet = Wallet.objects.create(user=referred_user)
+                        WalletTransaction.objects.create(
+                            wallet = user_wallet,
+                            amount = 50,
+                            status = 'Referral bonus credited'
+                            )
+                        return redirect('login')
+                #form can also be saved without a referral code
+                else:
+                    form.save()
+                    messages.info(request, 'User created successfully')
+                    return redirect('login')
     context = {'form':form}
     return render(request, 'registration/register.html', context)
 
