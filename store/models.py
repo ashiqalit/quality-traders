@@ -1,6 +1,7 @@
 import uuid
 import datetime
 from django.db import models
+from django.db.models import Sum
 from django.contrib.auth.models import User
 from django import forms
 from django.utils import timezone
@@ -229,7 +230,12 @@ class Order(models.Model):
     tracking_no = models.CharField(max_length=250, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True)
+    fname = models.CharField(max_length=150, null=False)
+    lname = models.CharField(max_length=150, null=False)
+    email = models.CharField(max_length=150, null=False)
+    phone = PhoneNumberField(blank=True)
+    pincode = models.CharField(max_length=150, null=False)
+    address = models.CharField(max_length=250, null=False) 
 
     def __str__(self):
         return '{} - {}'.format(self.id, self.tracking_no)
@@ -290,7 +296,7 @@ class WishlistItem(models.Model):
     
 
 class Wallet(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     # order = models.ForeignKey(Order, on_delete=models.CASCADE, null=True)
     # created_at = models.DateTimeField(auto_now_add=True)
     # status = models.CharField(max_length=50, blank=True)
@@ -299,6 +305,17 @@ class Wallet(models.Model):
 
     def __str__(self):
         return f"{self.user}"
+    
+    @property
+    def total(self):
+        return self.wallettransaction_set.filter(wallet_id=self.id).aggregate(total_amount=Sum('amount'))['total_amount'] or 0.00
+    
+    def update_total(self, amount):
+        current_total = self.total
+        new_total = current_total + amount
+        # self.wallettransaction_set.create(amount=amount, order=order, status='Wallet deduction', is_credit=amount>0)
+        self.save()
+        return new_total
 
 class WalletTransaction(models.Model):
     wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE)

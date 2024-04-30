@@ -95,9 +95,11 @@
                                     </label>
                                 </td>
                                 <td>
+                                    {% if brand.image %}
                                     <a class="product-img">
                                         <img src="{{brand.image.url}}" alt="brand">
                                     </a>
+                                    {% endif %}
                                 </td>
                                 <td>{{brand.name}}</td>
                                 <td>{{brand.description}}</td>

@@ -28,9 +28,13 @@
                                 {% else %}
                                     <h2>₹{{product.price}}</h2>
                                 {% endif %}
-								<a href="#" data-product={{product.id}} data-action="add"
-									class="btn btn-default add-to-cart"><i class="fa fa-shopping-cart"></i>Add
-									to cart</a>
+								<div class="col-sm-3">
+									<a href="#" data-product={{product.id}} data-action="add"
+										class="btn btn-default add-to-cart"><i class="fa fa-shopping-cart"></i>Add
+										to cart</a>
+									<a href="" data-product={{product.id}} class="btn btn-default add-to-wishlist"><i
+										class="fa fa-heart"></i>Add to wishlist</a>
+								</div>
 							</div>
 							{% if product.sub_category.offer and product.offer %}
 							    {% if product.offer > product.sub_category.offer %}

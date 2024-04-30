@@ -21,6 +21,7 @@ urlpatterns = [
 
     path('view_profile', views.profile, name='view_profile'),                
     path('profile_address', views.profile_address, name='profile_address'),
+    path('edit_address/<str:pk>', views.edit_address, name='edit_address'),
     path('remove-address', views.remove_address, name='removeaddress'),        
     path('profile_orders', views.profile_orders, name='profile_orders'),        
 ]

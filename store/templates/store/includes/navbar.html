@@ -32,31 +32,8 @@
       <div class="row">
         <div class="col-sm-4">
           <div class="logo pull-left">
-            <a href="index.html"><img src="{% static 'images/home/logo.png' %}" alt="" /></a>
-          </div>
-          <div class="btn-group pull-right">
-            <div class="btn-group">
-              <button type="button" class="btn btn-default dropdown-toggle usa" data-toggle="dropdown">
-                USA
-                <span class="caret"></span>
-              </button>
-              <ul class="dropdown-menu">
-                <li><a href="#">Canada</a></li>
-                <li><a href="#">UK</a></li>
-              </ul>
-            </div>
-
-            <div class="btn-group">
-              <button type="button" class="btn btn-default dropdown-toggle usa" data-toggle="dropdown">
-                DOLLAR
-                <span class="caret"></span>
-              </button>
-              <ul class="dropdown-menu">
-                <li><a href="#">Canadian Dollar</a></li>
-                <li><a href="#">Pound</a></li>
-              </ul>
-            </div>
-          </div>
+            <a href="{% url 'home' %}"><img src="{% static 'images/home/logo.png' %}" alt="" /></a>
+          </div>  
         </div>
         <div class="col-sm-8">
           <div class="shop-menu pull-right">
@@ -99,7 +76,7 @@
           <div class="mainmenu pull-left">
             <ul class="nav navbar-nav collapse navbar-collapse">
               <li><a href="{% url 'home' %}" class="active">Home</a></li>
-              <li class="dropdown"><a href="#">Shop<i class="fa fa-angle-down"></i></a>
+              <!-- <li class="dropdown"><a href="#">Shop<i class="fa fa-angle-down"></i></a>
                 <ul role="menu" class="sub-menu">
                   <li><a href="shop.html">Products</a></li>
                   <li><a href="product-details.html">Product Details</a></li>
@@ -115,7 +92,7 @@
                 </ul>
               </li>
               <li><a href="404.html">404</a></li>
-              <li><a href="contact-us.html">Contact</a></li>
+              <li><a href="contact-us.html">Contact</a></li> -->
             </ul>
           </div>
         </div>

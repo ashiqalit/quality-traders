@@ -247,7 +247,7 @@ def create_brands(request):
         form = BrandForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
-            return redirect('create_brand')
+            return redirect('read_brands')
         else:
             messages.info(request, 'Form invalid')
             return redirect('create_brand')
@@ -379,6 +379,7 @@ def list_orders(request):
 def edit_order(request, pk):
     order = Order.objects.get(id=pk)
     # form = OrderForm(instance=order)
+    wallet = Wallet.objects.get(user=request.user)
     if request.method == 'POST':
         form = OrderForm(request.POST, instance=order)
         if form.is_valid():
@@ -494,13 +495,15 @@ class DownloadPDF(View):
         sales_from = request.GET.get("sales_from")
         sales_to = request.GET.get("sales_to")     
 
-        sales_to_datetime = datetime.strptime(sales_to, '%Y-%m-%d')
-        sales_to_modified = sales_to_datetime + timedelta(days=1)
+        if sales_to:
+            sales_to_datetime = datetime.strptime(sales_to, '%Y-%m-%d')
+            sales_to_modified = sales_to_datetime + timedelta(days=1)
+        else:
+            # If sales_to is empty, set it to current datetime
+            sales_to_modified = datetime.now()
 
-        if sales_from == "":
+        if not sales_from:
             sales_from = datetime.now() - timedelta(days=3 * 365)
-        if sales_to == "":
-            sales_to = datetime.now()
 
         orders = (
             Order.objects.all()
@@ -560,8 +563,8 @@ def download_excel(request):
         "User",
         "Date",
         "Time",
-        "Product",
-        "Quantity",
+        # "Product",
+        # "Quantity",
         "Price",
         "Payment Method",
     ]
@@ -589,8 +592,8 @@ def download_excel(request):
             "user__username",
             "created_at__date",
             "created_at__time",
-            "orderitem__product__name",
-            "orderitem__quantity",
+            # "orderitem__product__name",
+            # "orderitem__quantity",
             "orderitem__price",
             "payment_mode",
         )

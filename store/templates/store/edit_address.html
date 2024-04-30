@@ -27,7 +27,7 @@
                                     <div class="col-md-12">
                                         <div class="panel">
                                             <div class="panel-body">
-                                                <form method="post">
+                                                <form action="{% url 'edit_address' pk %}" method="post">
                                                     {% csrf_token %}
                                                     <div class="form-row">
                                                         <div class="form-group col-md-6 mb-0">
@@ -65,52 +65,6 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                        <div class="panel panel-default">
-                            <div class="panel-heading">
-                                {% if addresses %}
-                                <h3>Your Addresses</h3>
-                                {% else %}
-                                <h3>You have no added addresses</h3>
-                                {% endif %}
-                            </div>
-                            <div class="panel-body panel-shadow"
-                                style="display: flex; flex-direction: column; align-items: stretch;">
-                                {% if addresses %}
-                                {% for address in addresses %}
-                                <div class="row">
-                                    <div class="col-md-9">
-                                        <div class="panel">
-                                            <div class="panel-body"
-                                                style="display: flex; flex-direction: column; align-items: stretch;">
-                                                <div>
-                                                    <p><span>{{ address.fname }}</span>&nbsp<span>{{ address.lname }}</span></p>
-                                                    <p>{{ address.email }}</p>
-                                                    <p>{{ address.phone }}</p>
-                                                    <p>Pin: {{ address.pincode }}</p>
-                                                    <p>{{ address.address }}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <td class="cart_delete">
-                                            <a class="address_delete" pid="{{ address.id }}" href=""><i
-                                                    class="fa fa-times"></i></a>
-                                        </td>
-                                        <td>
-                                            <a href="{% url 'edit_address' address.id %}"><i
-                                                    class="fa fa-pencil"></i></a>
-                                        </td>
-                                    </div>
-                                </div>
-                                {% endfor %}
-                                {% else %}
-                                <h3>No addresses were added.</h3>
-                                {% endif %}
-                        
-                        
                             </div>
                         </div>
                     </div>

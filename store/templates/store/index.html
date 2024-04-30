@@ -2,6 +2,22 @@
 
 {% block content %}
 {% load static %}
+<div class="row search-products justify-content-center">
+    <div class="col-lg-6">
+        <div class="input-group">
+            <form action="{% url 'search_view' %}" method="GET">
+                <span class="input-group-btn">
+                    <input type="text" name="q" class="form-control" placeholder="Search products">
+                    <button class="btn btn-primry search-product-btn" type="submit">Search</button>
+                </span>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+  
+  
 {% include 'store/includes/carousel.html' %}
 <!-- <div class="row">
 
@@ -22,7 +38,7 @@
                 <div class="features_items" id="filtered-product">
                     <!--features_items-->
                     <h2 class="title text-center">Features Items</h2>
-
+            
                     {% for prod in products %}
                     <div class="col-sm-4">
                         <div class="product-image-wrapper">
@@ -31,14 +47,14 @@
                                     {% csrf_token %}
                                     <input type="hidden" value="{{ prod.id }}" class="prod_id" name="product_id">
                                     <img src="{{prod.image.url}}" alt="" height="300px" width="auto" />
-
+            
                                     {% if prod.offer or prod.sub_category.offer %}
                                     <h2>₹{{prod.get_discounted_price.0}}</h2>
                                     <s class="text-success">₹{{prod.price}}</s>
                                     {% else %}
                                     <h2>₹{{prod.price}}</h2>
                                     {% endif %}
-
+            
                                     <p class="prod_name">{{prod.name}}</p>
                                     <a href="#" data-product={{prod.id}} data-action="add"
                                         class="btn btn-default add-to-cart"><i class="fa fa-shopping-cart"></i>Add to
@@ -52,7 +68,7 @@
                                         {% else %}
                                         <h2>₹{{prod.price}}</h2>
                                         {% endif %}
-
+            
                                         <p>{{prod.name}}</p>
                                         <a href="#" data-product={{prod.id}} data-action="add"
                                             class="btn btn-default add-to-cart"><i class="fa fa-shopping-cart"></i>Add
@@ -72,7 +88,7 @@
                     </div>
                     {% endfor %}
                 </div>
-            </div>
+            </div>   
         </div>
     </div>
 </section>

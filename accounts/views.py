@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import authenticate,login,logout
 from django.contrib.auth.decorators import login_required
@@ -18,8 +18,7 @@ def registerpage(request):
         if request.method=='POST':
             form = CreateUserForm(request.POST)
             if form.is_valid():
-                wallet = Wallet.objects.create(user=request.user)
-                wallet.save()
+                
                 referred_code = form.cleaned_data['referred_code']
                 #checks if referral code entered 
                 if referred_code: 
@@ -127,6 +126,20 @@ def profile_address(request):
         address_count = addresses.count()
         context = {'form':form, 'addresses':addresses, 'count':address_count}
         return render(request, 'store/edit_address_profile.html',context)
+
+@login_required(login_url="login")   
+def edit_address(request, pk):
+    address = Address.objects.get(id=pk)
+    form = AddressForm(instance=address)
+    if request.method == 'POST':
+        form = AddressForm(request.POST, instance=address)
+        if form.is_valid():
+            form.save()
+            return redirect('profile_address')
+    context = {'form':form,
+               'pk': address.pk,}
+    return render(request, 'store/edit_address.html', context)
+
 
 @login_required(login_url='login')
 def remove_address(request):

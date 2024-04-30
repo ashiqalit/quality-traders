@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.db.models import Q
 from django.urls import reverse
 from django.contrib import messages
 from django.db.models import Sum
@@ -50,6 +51,22 @@ def home(request):
     }
     return render(request, 'store/index.html', context)
 
+@login_required(login_url="login")
+def search_view(request):
+    query = request.GET.get('q')
+    if query:
+        products = Product.objects.filter(
+            Q(name__icontains=query) |
+            Q(category__name__icontains=query) |
+            Q(sub_category__name__icontains=query) |
+            Q(brand__name__icontains=query)
+        ).distinct()
+    else:
+        products = Product.objects.all()
+    data = render_to_string('store/filteredproducts.html', {'products':products})
+    return JsonResponse({'data':data})
+
+@login_required(login_url="login")
 def filter_product(request):
 
     subcategories = request.GET.getlist('sub_category[]')
@@ -396,6 +413,7 @@ def checkout(request):
     if not cart_items:
         # If cart items are empty, redirect to cart page
         return redirect('showcart')
+    wallet = Wallet.objects.get(user=request.user)
     
     if request.method == 'POST':
         form = AddressForm(request.POST)
@@ -412,7 +430,13 @@ def checkout(request):
         if selected_address_id and payment_mode and cart_items:
             print('Payment method:',payment_mode)
             selected_address = Address.objects.get(pk=selected_address_id)
-            neworder = Order(user=request.user, payment_mode=payment_mode, address=selected_address)
+            neworder = Order(user=request.user, payment_mode=payment_mode,
+                             fname=selected_address.fname,
+                             lname=selected_address.lname,
+                             email=selected_address.email,
+                             phone=selected_address.phone,
+                             address=selected_address.address,
+                             pincode=selected_address.pincode)
             neworder.total_price = total_price
             neworder.coupon_discount_price = discount_amount
             neworder.offer_discount_price = total_offer
@@ -427,8 +451,21 @@ def checkout(request):
                 track_no = 'qt' + str(random.randint(1111111, 9999999))
             neworder.tracking_no = track_no
             neworder.payment_id = payment_id
-            neworder.save()
             
+            if payment_mode == 'Wallet':
+                new_total = wallet.update_total(-grand_total)
+                if new_total > 0:
+                    neworder.save()
+                    wallettransaction =  wallet.wallettransaction_set.create(
+                        amount = -grand_total,
+                        order=neworder,
+                        status='Wallet deduction',
+                        is_credit=True,
+                    )
+                else:
+                    messages.error(request, 'Insufficient fund in your wallet')
+            else:
+                neworder.save()
 
             neworder_items = cart_items
             for item in neworder_items:
@@ -539,6 +576,12 @@ def cancel_order(request):
                 except:
                     wallet = Wallet.objects.create(user=request.user)
                 
+                # Set the amount based on payment mode
+                # if order.payment_mode == 'Razorpay':
+                #     amount = int(order.grand_total)
+                # else:
+                #     amount = order.grand_total
+
                 wallet_transaction = WalletTransaction.objects.create(
                     wallet = wallet,
                     order = order,
@@ -646,10 +689,31 @@ def wallet(request):
     except:
         wallet = Wallet.objects.create(user=request.user)
     wallet_transactions = WalletTransaction.objects.filter(wallet=wallet).order_by('-created_at')
-    total_amount = WalletTransaction.objects.aggregate(total_amount=Sum('amount'))['total_amount'] or 0.00
+    total_amount = wallet.total
     context = {
         'wallet':wallet,
         'wallet_transactions':wallet_transactions,
         'total_amount':total_amount,
     }
     return render(request, 'store/wallets.html', context)
+
+@login_required(login_url='login')
+def apply_wallet(request, discount_amount=0, total_price=0, total_offer=0):
+    wallet = Wallet.objects.get(user=request.user)
+    wallet_total = Decimal(wallet.total())
+    
+    grand_total = total_price - total_offer - discount_amount
+
+    if wallet_total >= grand_total:
+        grand_total = 0
+        print('Wallet total b4:',wallet_total)
+        wallet_total -= grand_total
+        print('Wallet total aftr:',wallet_total)
+        print('wallet.total() =',wallet.total())
+        wallet.save()
+    elif wallet_total < grand_total:
+        grand_total -= wallet_total
+        wallet_total = 0
+        wallet.save()
+
+    return grand_total

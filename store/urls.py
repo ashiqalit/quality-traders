@@ -38,4 +38,7 @@ urlpatterns = [
     # Generating Invoice
     path('generate_invoice/<int:pk>/', views.GenerateInvoice.as_view(), name = 'generate_invoice'),
 
+    # Search
+    path('search/', views.search_view, name='search_view'),
+
 ]

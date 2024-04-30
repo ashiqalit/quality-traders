@@ -35,8 +35,12 @@
 
         th, td {
             border: 1px solid #ddd;
-            padding : 4px;
+            padding : 2px;
             text-align: left;
+        }
+        
+        td{
+            white-space: normal;
         }
 
         th {
@@ -72,6 +76,10 @@
         strong {
             color: #3498db;
         }
+
+        .wrap {
+            word-wrap: break-word;
+        }
     </style>
 </head>
 
@@ -104,8 +112,8 @@
             <th>User</th>
             <th>Date</th>
             <th>Time</th>
-            <th>Products</th>
-            <th>Quantity</th>
+            <!-- <th>Products</th> -->
+            <!-- <th>Quantity</th> -->
             <th>Total</th>
             <th>Payment Method</th>
         </tr>
@@ -113,12 +121,12 @@
         {% for item in orders %}
         <tr>
             <td>{{forloop.counter}}</td>
-            <td>{{item.tracking_no}}</td>
+            <td class="wrap">{{item.tracking_no}}</td>
             <td>{{item.user.username | title}}</td>
             <td>{{item.created_at.date}}</td>
             <td>{{item.created_at.time}}</td>
-            <td>{% for ord in item.orderitem_set.all %} {{ord.product.name}}<br> {% endfor %}</td>
-            <td>{% for ord in item.orderitem_set.all %} {{ord.quantity}} <br> {% endfor %}</td>
+            <!-- <td>{% for ord in item.orderitem_set.all %} {{ord.product.name}}<br> {% endfor %}</td> -->
+            <!-- <td>{% for ord in item.orderitem_set.all %} {{ord.quantity}} <br> {% endfor %}</td> -->
             <td>Rs. {{item.grand_total}}</td>
             <td>{{item.payment_mode}}</td>
         </tr>
