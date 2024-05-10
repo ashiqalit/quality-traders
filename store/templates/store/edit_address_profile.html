@@ -114,6 +114,28 @@
                             </div>
                         </div>
                     </div>
+                    <!-- Pagination links -->
+                    <div class="text-center">
+                        <nav aria-label="Page Navigation">
+                            <ul class="pagination">
+                                {% if addresses.has_previous %}
+                                    <li><a href="?page=1">First</a></li> 
+                                    <li><a href="?page={{ addresses.previous_page_number }}">Previous</a></li>
+                                {% endif %}
+                                {% for num in addresses.paginator.page_range %}
+                                        {% if addresses.number == num %}
+                                            <li class="active"><a href="?page={{ num }}">{{ num }}</a></li>
+                                        {% elif num > addresses.number|add:'-3' and num < addresses.number|add:'3' %}
+                                            <li><a href="?page={{ num }}">{{ num }}</a></li>
+                                        {% endif %}
+                                {% endfor %}
+                                {% if addresses.has_next %}
+                                <li><a href="?page={{ addresses.next_page_number }}">Next</a></li>
+                                <li><a href="?page={{ addresses.paginator.num_pages }}">Last</a></li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
                 </div>
 
 

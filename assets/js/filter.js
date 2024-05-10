@@ -32,4 +32,18 @@ $(document).ready(function () {
             },
         });
     });
+
+    $('.search-product-btn').click(function (e) { 
+        e.preventDefault();
+        // console.log('search btn')
+        $.ajax({
+            url: "/search",
+            data: { q: $('.form-control').val() },
+            dataType: "json",
+            success: function (response) {
+                $("#filtered-product").html(response.data)
+            }
+        });
+        
+    });
 });

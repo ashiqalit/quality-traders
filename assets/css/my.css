@@ -118,3 +118,13 @@
     margin-right: 10px;
 }
 
+/* Banner image */
+
+#slider-carousel .carousel-inner .item img {
+    height: 400px; /* Set the desired fixed height for the carousel images */
+    width: auto;
+}
+
+.search-products{
+    margin-bottom: 10px;
+}

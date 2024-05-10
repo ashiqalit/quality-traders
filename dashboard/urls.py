@@ -62,6 +62,12 @@ urlpatterns = [
 # Generating pdf sales report
     path('generate_sales_report_pdf/', views.DownloadPDF.as_view(), name = 'generate_sales_report_pdf'),
     path('generate_sales_report_excel/', views.download_excel, name = 'generate_sales_report_excel'),
+
+# Coupons
+    path ('coupons/', views.list_coupons, name = 'read_coupons'),
+    path ('create_coupon/', views.create_coupon, name = 'create_coupon'),
+    path ('edit_coupon/<int:pk>/', views.update_coupon, name = 'edit_coupon'),
+    path ('delete_coupon/', views.drop_coupon, name = 'delete_coupon'),
 ]
 
 if settings.DEBUG:

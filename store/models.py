@@ -1,6 +1,8 @@
 import uuid
 import datetime
 from django.db import models
+from django.contrib.gis.db import models
+from django.contrib.gis.geos import Point
 from django.db.models import Sum
 from django.contrib.auth.models import User
 from django import forms
@@ -177,10 +179,14 @@ class CartItem(models.Model):
     def __str__(self):
         return self.product
 
+DISCOUNT_TYPE = {
+    ('Percentage','Percentage'),
+    ('Money','Money'),
+}
 class Coupon(models.Model):
     coupon_code = models.CharField(max_length=10)
     active = models.BooleanField(default=False)
-    type = models.CharField(max_length=100, default="Percentage")
+    type = models.CharField(max_length=100, choices=DISCOUNT_TYPE ,default="Percentage")
     discount = models.IntegerField(default=100)
     date = models.DateTimeField(auto_now_add=True)
     valid_from = models.DateTimeField()
@@ -188,7 +194,17 @@ class Coupon(models.Model):
 
     def __str__(self):
         return self.coupon_code
+    
+    def save(self, *args, **kwargs):
+        self.active = timezone.now() >= self.valid_from and timezone.now() <= self.valid_to
+        super().save(*args, **kwargs)
 
+    @classmethod
+    def get_active_coupons(cls):
+        now = timezone.now()
+        return cls.objects.filter(valid_from__lte=now, valid_to__gte=now, active=True)
+    
+DEFAULT_LOCATION = Point(10.89503953926854, 76.18858690219396, srid=4326)
 class Address(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     fname = models.CharField(max_length=150, null=False)
@@ -197,11 +213,35 @@ class Address(models.Model):
     phone = PhoneNumberField(blank=True)
     pincode = models.CharField(max_length=150, null=False)
     address = models.CharField(max_length=250, null=False)
-    # order = models.ForeignKey(Order, on_delete=models.CASCADE)
     status = models.BooleanField(default=False)
+    # location = models.PointField(srid=4326, default=DEFAULT_LOCATION)
 
     def __str__(self):
         return self.address
+    # @property
+    # def distance_to_shop(self):
+        
+    #     shop_latitude = 76.19193007727931
+    #     shop_longitude = 10.901676286349709
+        
+    #     shop_location = Point(shop_longitude, shop_latitude, srid=4326) # Shop location Point object
+    #     distance_meter = self.location.distance(shop_location)
+
+    #     return distance_meter
+
+# class Payment(models.Model):
+#     modes = (
+#         (1,'COD'),
+#         (2,'Wallet'),
+#         (3,'Razorpay'),
+#     )
+#     payment_mode = models.IntegerField(choices=modes)
+#     status = (
+#         (1,'Pending'),
+#         (2,'Success'),
+#         (3,'Failed'),
+#     )
+#     payment_status = models.IntegerField(choices=status, default=1)
 
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -228,7 +268,7 @@ class Order(models.Model):
     payment = models.IntegerField(choices=payment_status, default=1)
     message = models.TextField(null=True)
     tracking_no = models.CharField(max_length=250, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
     fname = models.CharField(max_length=150, null=False)
     lname = models.CharField(max_length=150, null=False)
@@ -236,6 +276,7 @@ class Order(models.Model):
     phone = PhoneNumberField(blank=True)
     pincode = models.CharField(max_length=150, null=False)
     address = models.CharField(max_length=250, null=False) 
+    delivery_charge = models.FloatField(default=0)
 
     def __str__(self):
         return '{} - {}'.format(self.id, self.tracking_no)
@@ -248,7 +289,7 @@ class Order(models.Model):
     @property
     def grand_total(self):
         grand_total = 0
-        grand_total = round(Decimal(self.total_price - self.coupon_discount_price - self.offer_discount_price),2) 
+        grand_total = round(Decimal(self.total_price - self.coupon_discount_price - self.offer_discount_price + self.delivery_charge),2) 
         return grand_total
     
     @property

@@ -21,6 +21,8 @@ import json
 from io import BytesIO
 from xhtml2pdf import pisa
 import os
+# pagination
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 
 
 # Create your views here.
@@ -34,6 +36,15 @@ def home(request):
     products = Product.objects.all()
     banner_images = Banner.objects.all()
     
+    paginator = Paginator(products, 6) # show 6 products per page
+    page = request.GET.get('page')
+    try:
+        products = paginator.page(page)
+    except PageNotAnInteger:
+        products = paginator.page(1)
+    except EmptyPage:
+        products = paginator.page(paginator.num_pages)
+
     # myFilter = ProductFilter(request.GET, queryset=products)
     # filterd_products = myFilter.qs
     # Fetch referral code for the current user's profile
@@ -406,7 +417,17 @@ def checkout(request):
         discount_amount = Decimal(discount_amount)
         total_price = Decimal(total_price)
         total_offer = round(Decimal(total_offer),2)
-        grand_total = total_price - total_offer - discount_amount
+        total_without_deliverycharge = total_price - total_offer - discount_amount
+        if total_without_deliverycharge <= 100: #Delivery charge is assigned here
+            delivery_charge = 40 
+        elif total_without_deliverycharge > 100 and total_without_deliverycharge <=500:
+            delivery_charge = 30
+        elif total_without_deliverycharge > 500 and total_without_deliverycharge <=1000:
+            delivery_charge = 20
+        elif total_without_deliverycharge > 1000: 
+            delivery_charge = 0
+        grand_total = total_price - total_offer - discount_amount + delivery_charge
+            
     except CartItem.DoesNotExist:
         # If cart is empty, redirect to cart page
         return redirect('showcart')
@@ -415,7 +436,10 @@ def checkout(request):
         return redirect('showcart')
     wallet = Wallet.objects.get(user=request.user)
     
+    # POST request
     if request.method == 'POST':
+
+        # Adding address from checkout page
         form = AddressForm(request.POST)
         if form.is_valid():
             address = form.save(commit=False) 
@@ -423,12 +447,59 @@ def checkout(request):
             address.save()
             messages.info(request, 'New address added')
             return redirect('checkout')
+        
+        # selecting address and payment mode
         selected_address_id = request.POST.get('selected_address')
         payment_mode = request.POST.get('payment_mode')
+
         payment_id = request.POST.get('payment_id')
-        
+        # if selected_address_id and payment_mode and cart_items:
+        #     print('Payment method:',payment_mode)
+        #     selected_address = Address.objects.get(pk=selected_address_id)
+        #     neworder = Order(user=request.user, payment_mode=payment_mode,
+        #                      fname=selected_address.fname,
+        #                      lname=selected_address.lname,
+        #                      email=selected_address.email,
+        #                      phone=selected_address.phone,
+        #                      address=selected_address.address,
+        #                      pincode=selected_address.pincode)
+        #     neworder.total_price = total_price
+        #     neworder.coupon_discount_price = discount_amount
+        #     neworder.offer_discount_price = total_offer
+        #     neworder.delivery_charge = delivery_charge
+        #     grand_total = neworder.grand_total
+        #     if payment_mode != 'COD':
+        #         if grand_total > 1000:
+        #             messages.error(request, 'Order above ₹1000 is not eligible for COD')
+        #             return redirect('checkout')
+        #         else:
+        #             neworder.payment = 2
+        #             neworder.save()
+        #     # request.session['total_price'] = neworder.total_price
+
+        #     # tracking number
+        #     track_no = str(request.user.username) + str(random.randint(1111111, 9999999))
+        #     while Order.objects.filter(tracking_no = track_no) is None:
+        #         track_no = 'qt' + str(random.randint(1111111, 9999999))
+        #     neworder.tracking_no = track_no
+        #     neworder.payment_id = payment_id
+            
+        #     if payment_mode == 'Wallet':
+        #         new_total = wallet.update_total(-grand_total)
+        #         if new_total > 0:
+        #             neworder.save()
+        #             wallettransaction =  wallet.wallettransaction_set.create(
+        #                 amount = -grand_total,
+        #                 order=neworder,
+        #                 status='Wallet deduction',
+        #                 is_credit=True,
+        #             )
+        #         else:
+        #             messages.error(request, 'Insufficient fund in your wallet')
+        #     else:
+        #         neworder.save()
         if selected_address_id and payment_mode and cart_items:
-            print('Payment method:',payment_mode)
+            # print('Payment method:',payment_mode)
             selected_address = Address.objects.get(pk=selected_address_id)
             neworder = Order(user=request.user, payment_mode=payment_mode,
                              fname=selected_address.fname,
@@ -440,19 +511,28 @@ def checkout(request):
             neworder.total_price = total_price
             neworder.coupon_discount_price = discount_amount
             neworder.offer_discount_price = total_offer
-            if payment_mode != 'COD':
-                neworder.payment = 2
-            grand_total = neworder.grand_total
-            # request.session['total_price'] = neworder.total_price
+            neworder.delivery_charge = delivery_charge
+            grand_total = total_price + delivery_charge - discount_amount - total_offer
 
-            # tracking number
+
+            # setting tracking number to the neworder
             track_no = str(request.user.username) + str(random.randint(1111111, 9999999))
             while Order.objects.filter(tracking_no = track_no) is None:
                 track_no = 'qt' + str(random.randint(1111111, 9999999))
             neworder.tracking_no = track_no
             neworder.payment_id = payment_id
             
-            if payment_mode == 'Wallet':
+            # setting payment status according to payment methods
+            if payment_mode == 'COD': # cod
+                if grand_total > 1000:
+                    messages.error(request, 'Order above ₹1000 is not eligible for COD')
+                    return redirect('checkout')
+                else:
+                    neworder.payment = 1
+                    neworder.save()
+
+            elif payment_mode == 'Wallet': # wallet
+                neworder.payment = 2
                 new_total = wallet.update_total(-grand_total)
                 if new_total > 0:
                     neworder.save()
@@ -464,6 +544,11 @@ def checkout(request):
                     )
                 else:
                     messages.error(request, 'Insufficient fund in your wallet')
+
+            elif payment_mode == 'Razorpay': # razorpay
+                neworder.payment = 2
+                neworder.save()
+
             else:
                 neworder.save()
 
@@ -493,7 +578,10 @@ def checkout(request):
             if payment_mode == "Razorpay":
                 invoice_url = reverse('generate_invoice', kwargs={'pk': neworder.pk})
 
-                return JsonResponse({'status':"Your order has been placed successfully", 't_no':neworder.tracking_no})
+                return JsonResponse({'status':"Your order has been placed successfully",
+                                    't_no':neworder.tracking_no,
+                                    'grand_total':grand_total
+                                    })
             messages.success(request, "Your order has been placed successfully")
             return redirect('orderview', t_no=neworder.tracking_no)
 
@@ -510,7 +598,15 @@ def checkout(request):
         # for item in cart_items:
         #     total_price += item.product.price * item.product_qty
         
-        context = {'form':form, 'addresses':addresses,'cartitems':cart_items, 'total_price':total_price, 'discount_amount':round(discount_amount, 2), 'offer_discount': total_offer, 'grand_total':round(grand_total, 2)}
+        context = {'form':form,
+                'addresses':addresses,
+                'cartitems':cart_items,
+                'total_price':total_price,
+                'discount_amount':round(discount_amount, 2),
+                'offer_discount': total_offer,
+                'delivery_charge':delivery_charge,
+                'grand_total':round(grand_total, 2),
+                'order_id': neworder.id if request.method == 'POST' else None}
         return render(request, "store/checkout.html", context)
     
 
@@ -520,19 +616,22 @@ def checkout(request):
 def razorpaycheck(request):
     if request.method == 'GET':
         address_id = request.GET['address_id']
+        grand_total = request.GET['grand_total']
         if address_id is not None:    
             # print(address_id)
             address_ = Address.objects.filter(id=address_id, user=request.user).values().first()
             if address_:
                 address_['phone'] = str(address_['phone'])
                 cart = Cart.objects.get(user=request.user)
-                total_price, discount_amount, grand_total, total_offer = cart.total_cost
+                total_price, discount_amount, _, total_offer = cart.total_cost
                 total_after_offer = total_price - total_offer - discount_amount
+                grand_total = grand_total
+                # print(grand_total)
                 # cart_items = cart.cartitem_set.all()
                 # total_price = cart.total_cost
                 # for item in cart_items:
                 #     total_price = total_price + item.product.price * item.product_qty
-                data = {'total_price': int(total_after_offer), 'address': address_}
+                data = {'grand_total': grand_total, 'address': address_}
                 
                 return JsonResponse(data)
             else:
@@ -563,7 +662,6 @@ def cancel_order(request):
                 # Change order status to 'Cancel'
                 order.status = 5
                 order.save()
-
                 # Increment product quantities
                 order_items = order.orderitem_set.all()
                 for order_item in order_items:
@@ -581,14 +679,14 @@ def cancel_order(request):
                 #     amount = int(order.grand_total)
                 # else:
                 #     amount = order.grand_total
-
-                wallet_transaction = WalletTransaction.objects.create(
-                    wallet = wallet,
-                    order = order,
-                    amount = order.grand_total,
-                    status = 'Order cancel amount credited'
-                )
-                wallet_transaction.save()
+                if order.payment_mode != 'COD':
+                    wallet_transaction = WalletTransaction.objects.create(
+                        wallet = wallet,
+                        order = order,
+                        amount = order.grand_total,
+                        status = 'Order cancel amount credited'
+                    )
+                    wallet_transaction.save()
 
             return JsonResponse({'message': 'Order Cancelled', 'order':order.serialize()})
         except Address.DoesNotExist:
@@ -690,6 +788,15 @@ def wallet(request):
         wallet = Wallet.objects.create(user=request.user)
     wallet_transactions = WalletTransaction.objects.filter(wallet=wallet).order_by('-created_at')
     total_amount = wallet.total
+    # Applying pagination
+    paginator = Paginator(wallet_transactions, 10)
+    page = request.GET.get('page')
+    try:
+        wallet_transactions = paginator.page(page)
+    except PageNotAnInteger:
+        wallet_transactions = paginator.page(1)
+    except EmptyPage:
+        wallet_transactions = paginator.page(paginator.num_pages)
     context = {
         'wallet':wallet,
         'wallet_transactions':wallet_transactions,

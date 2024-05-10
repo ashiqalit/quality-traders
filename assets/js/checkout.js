@@ -3,6 +3,8 @@ $('.pay_with_razorpay').click(function (e) {
     var csrftoken = $('input[name=csrfmiddlewaretoken]').val();
     var selectedAddress = $('input[name="selected_address"]:checked');
     var payment_mode = $(this).val();
+    var grandTotalText = $('.grand_total').text();
+    var grandTotalNumeric = parseFloat(grandTotalText.replace('₹', ''));
     // console.log(payment_mode)
     // console.log(selectedAddress.val())
     
@@ -20,14 +22,16 @@ $('.pay_with_razorpay').click(function (e) {
             url: "proceed-to-pay",
             data: {
                 csrfmiddlewaretoken: csrftoken,
-                address_id: selectedAddress.val()
+                address_id: selectedAddress.val(),
+                grand_total: grandTotalNumeric, 
+               
             },
             success: function (response) {
                 // console.log("Response:", response);
                 var address = response.address
                 var options = {
                     "key": "rzp_test_1DBm3kToLW56S3", // Enter the Key ID generated from the Dashboard
-                    "amount": response.total_price * 100, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
+                    "amount": response.grand_total * 100, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
                     "currency": "INR",
                     "name": "Quality Traders", //your business name
                     "description": "We serve you good",

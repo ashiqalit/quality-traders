@@ -1,6 +1,6 @@
 from django import forms
 from django.forms import ModelForm
-from store.models import Category,Product,Sub_category,Brand,Order
+from store.models import Category,Product,Sub_category,Brand,Order, Coupon
 # from django.contrib.auth.hashers import make_password
 from bootstrap_datepicker_plus.widgets import DatePickerInput, TimePickerInput
 
@@ -43,4 +43,14 @@ class OrderForm(ModelForm):
     class Meta:
         model = Order
         fields = ('status',)
+
+class CouponForm(ModelForm):
+    class Meta:
+        model = Coupon
+        fields = ('coupon_code','type','discount','valid_from','valid_to','active')
+        widgets = {
+            'valid_from':forms.DateInput(attrs={'type':'date'}),
+            'valid_to':forms.DateInput(attrs={'type':'date'}),
+        }
+
           

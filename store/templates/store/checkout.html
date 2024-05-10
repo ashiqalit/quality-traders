@@ -1,4 +1,5 @@
 {% extends "store/layouts/main.html" %}
+{% load static %}
 
 {% block content %}
 
@@ -148,7 +149,7 @@
 										{% endif %}
 									</div>
 									<div class="col-xs-4">
-										<button type="button" name="payment_mode" value="Razorpay" class="btn btn-default pay_with_razorpay check_out pay_btn"
+										<button type="button" name="payment_mode" value="Razorpay" class="btn btn-default pay_with_razorpay check_out pay_btn" data-neworder="{{ order_id }}"
 										id="rzp-button1">Razorpay</button>
 									</div>
 								</div>
@@ -204,6 +205,15 @@
 							<tr>
 								<td></td>
 								<td>
+									<h4 class="text-primary">Delivery Charge:</h4>
+								</td>
+								<td><span>
+										<h4 class="text-primary">₹{{delivery_charge}}</h4>
+									</span></td>
+							</tr>
+							<tr>
+								<td></td>
+								<td>
 									<h4 class="text-success">Coupon Discount:</h4>
 								</td>
 								<td><span>
@@ -225,7 +235,7 @@
 									<h3 class="text-primary">Grand Total:</h3>
 								</td>
 								<td><span>
-										<h3>₹{{grand_total}}</h3>
+										<h3 class="grand_total">₹{{grand_total}}</h3>
 									</span></td>
 							</tr>
 						</table>
@@ -241,10 +251,14 @@
 {% endblock content %}
 
 {% block scripts %}
-{% if form.errors %}
-<script>
-	alertify.error('{{form.errors}}');
-</script>
-{% endif %}
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<!-- <script type="text/javascript" >
+	var grand_total = {{ grand_total|safe }}
+</script> -->
+	
+	{% if form.errors %}
+		<script>
+			alertify.error('{{form.errors}}');
+		</script>
+	{% endif %}
 {% endblock scripts %}

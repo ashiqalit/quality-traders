@@ -7,6 +7,7 @@ from store.forms import AddressForm
 from store.models import Address, Order, OrderItem, Cart, CartItem, Wallet, WalletTransaction
 from accounts.models import Profile
 from django.http import JsonResponse
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 # Create your views here.
 
 
@@ -124,6 +125,15 @@ def profile_address(request):
         form = AddressForm()
         addresses = Address.objects.filter(user=request.user)
         address_count = addresses.count()
+        # Applying pagination
+        paginator = Paginator(addresses, 3)
+        page = request.GET.get('page')
+        try:
+            addresses = paginator.page(page)
+        except PageNotAnInteger:
+            addresses = paginator.page(1)
+        except EmptyPage:
+            addresses = paginator.page(paginator.num_pages)
         context = {'form':form, 'addresses':addresses, 'count':address_count}
         return render(request, 'store/edit_address_profile.html',context)
 
@@ -161,7 +171,16 @@ def remove_address(request):
 # Orders
 @login_required(login_url='login')
 def profile_orders(request):
-    orders = Order.objects.filter(user = request.user)
+    orders = Order.objects.filter(user = request.user).order_by('-created_at')
+    # Applying pagination
+    paginator = Paginator(orders,10)
+    page = request.GET.get('page')
+    try:
+        orders = paginator.page(page)
+    except PageNotAnInteger:
+        orders = paginator.page(1)
+    except EmptyPage:
+        orders = paginator.page(paginator.num_pages)
     context = {'orders':orders,}
     return render(request, 'store/edit_orders_profile.html', context)
 

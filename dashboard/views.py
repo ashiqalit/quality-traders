@@ -1,10 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages, admin
 from django.contrib.auth.models import User, Group  
-from store.models import Category, Product, Sub_category, Brand, Order, OrderItem, ReturnRequest, Wallet, WalletTransaction
+from store.models import Category, Product, Sub_category, Brand, Order, OrderItem, ReturnRequest, Wallet, WalletTransaction, Coupon, Product
 from django.contrib import auth
-from .filters import UserFilter,CategoryFilter,ProductFilter, SubCategoryFilter, BrandFilter
-from .forms import CategoryForm, ProductForm, SubCategoryForm, BrandForm, OrderForm
+from .filters import UserFilter,CategoryFilter,ProductFilter, SubCategoryFilter, BrandFilter, CouponFilter
+from .forms import CategoryForm, ProductForm, SubCategoryForm, BrandForm, OrderForm, CouponForm
 from django.http import JsonResponse, HttpResponseNotAllowed
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
@@ -13,13 +13,84 @@ from django.db import transaction
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from django.contrib.admin.views.decorators import staff_member_required
+from django.db.models import Count
+from django.db.models import Sum
+from collections import defaultdict
 
 # Create your views here.
 @login_required(login_url="dashboard_login")
 def dashboard(request):
     if 'username' not in request.session:
-        return redirect('dashboard_login')    
-    return render(request,'dashboard/other/index.html')
+        return redirect('dashboard_login')  
+    # top 10 products
+    top_products = Product.objects.annotate(order_count=Count('orderitem')).order_by('order_count')[:10]  
+    # top 10 categories
+    categories = Category.objects.all()
+    category_order_counts = {}
+    for category in categories:
+        products_in_category = category.product_set.all()
+        total_order_count = products_in_category.aggregate(total_order_count=Sum('orderitem__quantity'))['total_order_count'] 
+        total_order_count = total_order_count or 0
+        category_order_counts[category] = total_order_count
+    top_categories = sorted(category_order_counts.items(), key=lambda x: x[1], reverse=True)[:10]
+    # top 10 brands
+    brands = Brand.objects.all()
+    brand_order_counts = {}
+    for brand in brands:
+        products_in_brand = brand.product_set.all()
+        total_order_count = products_in_brand.aggregate(total_order_count=Sum('orderitem__quantity'))['total_order_count']
+        total_order_count = total_order_count or 0
+        brand_order_counts[brand] = total_order_count
+    top_brands = sorted(brand_order_counts.items(), key=lambda x: x[1], reverse=True)[:10]
+    # order based on year, month, day
+    sales_from = request.GET.get("sales_from")
+    sales_to = request.GET.get("sales_to")
+
+    if sales_from and sales_to:
+        # Add one day to sales_to to include it in the range
+        sales_to_modified = datetime.strptime(sales_to, "%Y-%m-%d") + timedelta(days=1)
+        orders = (
+            Order.objects.all()
+            .order_by("-created_at")
+            .filter(
+                created_at__range=[sales_from, sales_to_modified],
+                )
+        )
+    elif sales_from:
+        orders = (
+            Order.objects.all()
+            .order_by("-created_at")
+            .filter(
+                created_at__gte=sales_from,
+                )
+        )
+    elif sales_to:
+        orders = (
+            Order.objects.all()
+            .order_by("-created_at")
+            .filter(
+                created_at__lte=sales_to,
+                )
+        )
+    else:
+        orders = Order.objects.all().order_by("-created_at")
+    
+
+    # initialize a dictionary to store the order_count per date
+    order_counts_dict = defaultdict(int)
+    # order counts per date
+    order_count_per_date = orders.values('created_at__date').annotate(order_count=Count('id'))
+    # extract date and order counts
+    for entry in order_count_per_date:
+        date = entry['created_at__date'].strftime('%Y-%m-%d')
+        order_counts_dict[date] += entry['order_count']
+    
+    dates = list(order_counts_dict.keys())
+    order_counts = list(order_counts_dict.values())
+    # dates = [entry['created_at__date'].strftime('%Y-%m-%d') for entry in order_count_per_date]
+    # order_counts = [entry['order_count'] for entry in order_count_per_date]
+    context={'top_products':top_products, 'top_categories':top_categories, 'top_brands':top_brands, 'dates':dates, 'order_counts':order_counts}
+    return render(request,'dashboard/other/index.html', context)
 
 def adminLogin(request):
     if 'username' in request.session:
@@ -125,6 +196,49 @@ def drop_category(request):
         category.delete()
         return JsonResponse({'success':True})
         # return redirect('read_categories')
+    return JsonResponse({'success':False})
+
+# coupons..................................................................................
+@login_required(login_url="dashboard_login")
+def list_coupons(request):
+    coupons = Coupon.objects.all()
+    myfilter = CouponFilter(request.GET, queryset=coupons)
+    filtered_coupons = myfilter.qs
+    context = {'all_coupons':filtered_coupons,'myfilter':myfilter}
+    return render(request, 'dashboard/other/couponlist.html',context)
+
+@login_required(login_url="dashboard_login")
+def create_coupon(request):
+    if request.method == 'POST':
+        form = CouponForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('read_coupons')
+        else:
+            messages.info(request, 'Form invalid')
+            return redirect('create_coupon')
+    form = CouponForm()
+    return render(request, 'dashboard/other/addcoupon.html',{'form':form})
+
+@login_required(login_url="dashboard_login")
+def update_coupon(request, pk):
+    coupon = Coupon.objects.get(id=pk)
+    form = CouponForm(instance=coupon)
+    if request.method == 'POST':
+        form = CouponForm(request.POST, instance=coupon)
+        if form.is_valid():
+            form.save()
+            return redirect('read_coupons')
+    context = {'form':form, 'pk':coupon.pk}
+    return render(request, 'dashboard/other/editcoupon.html', context)
+
+@login_required(login_url="dashboard_login")
+def drop_coupon(request):
+    if request.method == 'POST':
+        coupon_id = request.POST.get('couponId')
+        coupon = Coupon.objects.get(id=coupon_id)
+        coupon.delete()
+        return JsonResponse({'success':True})
     return JsonResponse({'success':False})
 
 # products.................................................................................

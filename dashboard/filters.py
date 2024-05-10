@@ -1,7 +1,7 @@
 import django_filters
 from django.forms import ModelForm
 from django.contrib.auth.models import User
-from store.models import Category, Product, Sub_category, Brand
+from store.models import Category, Product, Sub_category, Brand, Coupon
 
 class UserFilter(django_filters.FilterSet):
     class Meta:
@@ -27,3 +27,8 @@ class BrandFilter(django_filters.FilterSet):
     class Meta:
         model = Brand
         fields = ['name']
+
+class CouponFilter(django_filters.FilterSet):
+    class Meta:
+        model = Coupon
+        fields = ['coupon_code','active','type','discount','valid_from','valid_to']

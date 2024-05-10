@@ -1,0 +1,72 @@
+{% extends "dashboard/layouts/main-admin.html" %}
+{% block content %}
+{% load static %}
+<div class="page-wrapper">
+    <div class="content">
+        <div class="page-header">
+            <div class="page-title">
+                <h4>Coupon ADD</h4>
+                <h6>Create new Coupon</h6>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <form action="{% url 'create_coupon' %}" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                {{form.coupon_code.label}}
+                                {{form.coupon_code}}
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                {{form.type.label}}
+                                {{form.type}}
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                {{form.discount.label}}
+                                {{form.discount}}
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                {{form.valid_from.label}}
+                                {{form.valid_from}}
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                {{form.valid_to.label}}
+                                {{form.valid_to}}
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                {{form.active.label}}
+                                {{form.active}}
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-12">
+                            <button type="submit" class="btn btn-submit me-2">Submit</button>
+                            <a href="{% url 'read_coupons' %}" class="btn btn-cancel">Cancel</a>
+                        </div>
+                        <p style="color: red;">
+
+                            {% for message in messages %}
+                            {{message}}
+                            {% endfor %}
+                        </p>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock content %}
