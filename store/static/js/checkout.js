@@ -32,7 +32,7 @@ $('.pay_with_razorpay').click(function (e) {
                 var address = response.address
                 var options = {
                     "key": "rzp_test_1DBm3kToLW56S3", // Enter the Key ID generated from the Dashboard
-                    "amount": response.grand_total * 100, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
+                    "amount": Math.round(response.grand_total * 100), // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
                     "currency": "INR",
                     "name": "Quality Traders", //your business name
                     "description": "We serve you good",
