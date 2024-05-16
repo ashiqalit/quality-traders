@@ -23,7 +23,8 @@ urlpatterns = [
     path('cancel-order', views.cancel_order, name='cancel-order'),
     path('return-order', views.return_order, name='return-order'),
 
-    path('proceed-to-pay', views.razorpaycheck, name='proceed-to-pay'),
+    path('create-order', views.create_order, name='create-order'),
+    path('handle-payment', views.handle_payment, name='handle-payment'),
     # path('apply-coupon', views.apply_coupon, name='apply_coupon'),
     path('remove_coupon', views.remove_coupon, name='remove_coupon'),
 

@@ -131,30 +131,31 @@ class Cart(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     coupons = models.ManyToManyField("store.Coupon",blank=True)
     created_date = models.DateTimeField(auto_now_add=True)
-    total = models.IntegerField(default=0)
-    saved = models.IntegerField(default=0)
+    total = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
+    saved = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
     
     @property
     def total_cost(self):
-        total_price = round(float(sum(cart_item.product.price * cart_item.product_qty for cart_item in self.cartitem_set.all())),2)
-        discount_amount = 0.0
-        total_offer = 0
-        sum_of_discount_price = 0
+        total_price_ = sum(cart_item.product.price * cart_item.product_qty for cart_item in self.cartitem_set.all())
+        total_price = round(Decimal(total_price_),2)
+        discount_amount = Decimal('0.0')
+        total_offer = Decimal('0.0')
+        sum_of_discount_price = Decimal('0.0')
         for cart_item in self.cartitem_set.all():
             if cart_item.product.offer or cart_item.product.sub_category.offer: #checking if the product has product offer or subcategory offer
                 
                 discount_price,total_offer_price = cart_item.product.get_discounted_price() #fetching the discouted total price from product model
                 #& fetching the discouted total price from product model
-                total_offer += (cart_item.product.price * total_offer_price / 100) * cart_item.product_qty
-                sum_of_discount_price += discount_price #adding each product's discounted price to get the total
+                total_offer += Decimal(cart_item.product.price * total_offer_price / 100) * cart_item.product_qty
+                sum_of_discount_price += Decimal(discount_price) #adding each product's discounted price to get the total
         grand_total = sum_of_discount_price
 
         if self.coupons.all() is not None:
             for coupon in self.coupons.all():
                 if coupon.type == 'Percentage':
-                    discount_amount += total_price * coupon.discount / 100
+                    discount_amount += Decimal(total_price * coupon.discount / 100)
                 else:
-                    discount_amount += coupon.discount
+                    discount_amount += Decimal(coupon.discount)
 
         grand_total -= discount_amount
             
@@ -289,7 +290,7 @@ class Order(models.Model):
     @property
     def grand_total(self):
         grand_total = 0
-        grand_total = round(Decimal(self.total_price - self.coupon_discount_price - self.offer_discount_price + self.delivery_charge),2) 
+        grand_total = round(Decimal(self.total_price + self.delivery_charge - self.coupon_discount_price - self.offer_discount_price),2) 
         return grand_total
     
     @property

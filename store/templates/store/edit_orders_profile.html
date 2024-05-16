@@ -39,19 +39,21 @@
                                                             <th>Tracking Number</th>
                                                             <th>Total Price</th>
                                                             <th>Payment Mode</th>
-                                                            <th>Status </th>
+                                                            <th>Order Status </th>
+                                                            <th>Payment Status </th>
                                                             <th>Action</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
                                                         {% csrf_token %}
-                                                        {% for order in orders reversed%}
+                                                        {% for order in orders%}
                                                         <tr>
                                                             <td>{{order.created_at}}</td>
                                                             <td>{{order.tracking_no}}</td>
                                                             <td>{{order.grand_total}}</td>
                                                             <td>{{order.payment_mode}}</td>
                                                             <td id="order_status_{{ order.id }}">{{order.get_status_display}}</td>
+                                                            <td id="order_status_{{ order.id }}">{{order.get_payment_display}}</td>
                                                             <td class="buttons">
                                                                 <a href="{% url 'orderview' order.tracking_no %}"
                                                                 class="btn btn-default">View</a>

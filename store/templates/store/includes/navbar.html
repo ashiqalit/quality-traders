@@ -41,7 +41,6 @@
               <li><a href="{% url 'view_profile' %}"><i class="fa fa-user"></i> Account</a></li>
               <li><a href="{% url 'wishlist' %}"><i class="fa fa-star"></i> Wishlist
                 <span class="badge badge-secondary wishlist-count" id="wishlist-counter">{{ wishlist_count }}</span></a></li>
-              <li><a href="{% url 'checkout' %}"><i class="fa fa-crosshairs"></i> Checkout</a></li>
               {% if user.is_authenticated %}
               <li>
                 <a href="{% url 'showcart' %}">

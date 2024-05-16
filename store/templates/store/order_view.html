@@ -89,9 +89,23 @@
                                         <tr>
                                             <td>
                                                 <h5 class="text-primary">Payment Mode: {{ order.payment_mode }}</h5>
+                                                {% if order.get_payment_display == 'Failed' %}
+                                                    <h5 class="text-danger">Payment Status: {{ order.get_payment_display }}</h5>
+                                                {% elif order.get_payment_display == 'Success' %}
+                                                    <h5 class="text-success">Payment Status: {{ order.get_payment_display }}</h5>
+                                                {% else %}
+                                                    <h5 class="text-primary">Payment Status: {{ order.get_payment_display }}</h5>    
+                                                {% endif %}
                                                 <h5 class="text-primary">Tracking No.: {{ order.tracking_no }}</h5>
                                                 {% if order.payment == 2 %}
                                                 <a href="{{ generate_invoice_url }}" class="btn btn-primary">Download Invoice</a>
+                                                {% elif order.payment == 3 %}
+                                                    <form method="post" action="{% url 'create-order' %}">
+                                                        <input type="hidden" name="data-neworder" value="{{ order.id }}">
+                                                        <button type="button" name="payment_mode" value="Razorpay" class="btn btn-success pay_with_razorpay check_out pay_btn">
+                                                            Retry Payment
+                                                        </button>
+                                                    </form>
                                                 {% endif %}
                                             </td>
                                             <td></td>
@@ -102,7 +116,7 @@
                                                 <h5 class="text-right text-primary">Coupon Discount: ₹{{order.coupon_discount_price}}</h5>
                                                 <h5 class="text-right text-primary">Offer Discount: ₹{{order.offer_discount_price}}</h5>
                                                 <h4 class="text-right">
-                                                    <strong class="text-success">Grand Total: ₹{{ grand_total }}
+                                                    <strong class="text-success">Grand Total: ₹{{ order.grand_total }}
                                                     </strong>
                                                 </h4>
                                             </td>

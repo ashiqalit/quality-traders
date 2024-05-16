@@ -7,7 +7,7 @@ from .filters import UserFilter,CategoryFilter,ProductFilter, SubCategoryFilter,
 from .forms import CategoryForm, ProductForm, SubCategoryForm, BrandForm, OrderForm, CouponForm
 from django.http import JsonResponse, HttpResponseNotAllowed
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.files.storage import FileSystemStorage
 from django.db import transaction
 from datetime import datetime, timedelta
@@ -16,9 +16,12 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Count
 from django.db.models import Sum
 from collections import defaultdict
+from django.views.decorators.cache import never_cache
 
+def superuser_check(user):
+    return user.is_superuser
 # Create your views here.
-@login_required(login_url="dashboard_login")
+@user_passes_test(superuser_check)
 def dashboard(request):
     if 'username' not in request.session:
         return redirect('dashboard_login')  
@@ -92,6 +95,7 @@ def dashboard(request):
     context={'top_products':top_products, 'top_categories':top_categories, 'top_brands':top_brands, 'dates':dates, 'order_counts':order_counts}
     return render(request,'dashboard/other/index.html', context)
 
+@never_cache
 def adminLogin(request):
     if 'username' in request.session:
         return redirect('dashboard')
@@ -115,7 +119,7 @@ def adminLogin(request):
     else:
         return render(request, 'dashboard/auth/admin_signin.html')
 
-@login_required(login_url="dashboard_login")
+@user_passes_test(superuser_check)
 def logout(request):
     if 'username' in request.session:
         request.session.flush()
@@ -123,7 +127,7 @@ def logout(request):
     return redirect('dashboard_login')
 
 # user............................................................
-@login_required(login_url="dashboard_login")
+@user_passes_test(superuser_check)
 def list_user(request):
     users = User.objects.all()
     _filter = UserFilter(request.GET, queryset=users)
@@ -131,7 +135,7 @@ def list_user(request):
     context = {'all_users':filtered_users}
     return render(request, 'dashboard/other/userlist.html', context)
 
-@login_required(login_url="dashboard_login")
+@user_passes_test(superuser_check)
 def update_user_status(request):
     if request.method == 'POST':
         try:
@@ -149,7 +153,7 @@ def update_user_status(request):
     return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
 
 # categories.............................................................................
-@login_required(login_url="dashboard_login")
+@user_passes_test(superuser_check)
 def list_categories(request):
     categories = Category.objects.all()
     myFilter = CategoryFilter(request.GET, queryset=categories)
@@ -157,7 +161,7 @@ def list_categories(request):
     context = {'all_categories' : filterd_categories, 'myFilter' : myFilter}
     return render(request, 'dashboard/other/categorylist.html', context)
 
-@login_required(login_url="dashboard_login")
+@user_passes_test(superuser_check)
 def create_categories(request):  
     if request.method == 'POST':
         form = CategoryForm(request.POST)
@@ -171,7 +175,7 @@ def create_categories(request):
         form = CategoryForm()
         return render(request, 'dashboard/other/addcategory.html', {'form':form})
 
-@login_required(login_url="dashboard_login")
+@user_passes_test(superuser_check)
 def update_category(request, pk):
     category = Category.objects.get(id=pk)
     form = CategoryForm(instance=category)
@@ -188,7 +192,7 @@ def update_category(request, pk):
         }    
         return render(request, 'dashboard/other/editcategory.html', context)
 
-@login_required(login_url="dashboard_login")
+@user_passes_test(superuser_check)
 def drop_category(request):
     if request.method == 'POST':
         category_id = request.POST.get('categoryId')
@@ -199,7 +203,7 @@ def drop_category(request):
     return JsonResponse({'success':False})
 
 # coupons..................................................................................
-@login_required(login_url="dashboard_login")
+@user_passes_test(superuser_check)
 def list_coupons(request):
     coupons = Coupon.objects.all()
     myfilter = CouponFilter(request.GET, queryset=coupons)
@@ -207,7 +211,7 @@ def list_coupons(request):
     context = {'all_coupons':filtered_coupons,'myfilter':myfilter}
     return render(request, 'dashboard/other/couponlist.html',context)
 
-@login_required(login_url="dashboard_login")
+@user_passes_test(superuser_check)
 def create_coupon(request):
     if request.method == 'POST':
         form = CouponForm(request.POST)
@@ -220,7 +224,7 @@ def create_coupon(request):
     form = CouponForm()
     return render(request, 'dashboard/other/addcoupon.html',{'form':form})
 
-@login_required(login_url="dashboard_login")
+@user_passes_test(superuser_check)
 def update_coupon(request, pk):
     coupon = Coupon.objects.get(id=pk)
     form = CouponForm(instance=coupon)
@@ -232,7 +236,7 @@ def update_coupon(request, pk):
     context = {'form':form, 'pk':coupon.pk}
     return render(request, 'dashboard/other/editcoupon.html', context)
 
-@login_required(login_url="dashboard_login")
+@user_passes_test(superuser_check)
 def drop_coupon(request):
     if request.method == 'POST':
         coupon_id = request.POST.get('couponId')
@@ -242,7 +246,7 @@ def drop_coupon(request):
     return JsonResponse({'success':False})
 
 # products.................................................................................
-@login_required(login_url="dashboard_login")
+@user_passes_test(superuser_check)
 def list_products(request):
     products = Product.objects.all()
     myFilter = ProductFilter(request.GET, queryset=products)
@@ -258,7 +262,7 @@ def list_products(request):
     context = {'all_products' : filterd_products, 'myFilter' : myFilter }
     return render(request, 'dashboard/other/productlist.html', context)
 
-@login_required(login_url="dashboard_login")
+@user_passes_test(superuser_check)
 def create_products(request):  
     # product - request.model.product
     if request.method == 'POST':
@@ -273,7 +277,7 @@ def create_products(request):
     form = ProductForm()
     return render(request, 'dashboard/other/addproduct.html', {'form':form})
 
-@login_required(login_url="dashboard_login")   
+@user_passes_test(superuser_check)  
 def edit_product(request, pk):
     product = Product.objects.get(id=pk)
     form = ProductForm(instance=product)
@@ -286,7 +290,7 @@ def edit_product(request, pk):
                'pk': product.pk,}
     return render(request, 'dashboard/other/editproduct.html', context)
 
-@login_required(login_url="dashboard_login")
+@user_passes_test(superuser_check)
 def drop_product(request):
     if request.method == 'POST':
         product_id = request.POST.get('productId')
@@ -297,7 +301,7 @@ def drop_product(request):
     return JsonResponse({'success':False})
 
 # subcategories.............................................................
-@login_required(login_url="dashboard_login")
+@user_passes_test(superuser_check)
 def list_subcategories(request):
     subcategories = Sub_category.objects.all()
     myFilter = SubCategoryFilter(request.GET, queryset=subcategories)
@@ -305,7 +309,7 @@ def list_subcategories(request):
     context = {'all_categories' : filterd_categories, 'myFilter' : myFilter}
     return render(request, 'dashboard/other/subcategorylist.html', context)
 
-@login_required(login_url="dashboard_login")
+@user_passes_test(superuser_check)
 def create_subcategories(request):  
     if request.method == 'POST':
         form = SubCategoryForm(request.POST)
@@ -319,7 +323,7 @@ def create_subcategories(request):
         form = SubCategoryForm()
         return render(request, 'dashboard/other/subaddcategory.html', {'form':form})
 
-@login_required(login_url="dashboard_login")
+@user_passes_test(superuser_check)
 def update_subcategory(request, pk):
     subcategory = Sub_category.objects.get(id=pk)
     form = SubCategoryForm(instance=subcategory)
@@ -336,7 +340,7 @@ def update_subcategory(request, pk):
         }    
         return render(request, 'dashboard/other/editsubcategory.html', context)
 
-@login_required(login_url="dashboard_login")
+@user_passes_test(superuser_check)
 def drop_subcategory(request):
     if request.method == 'POST':
         subcategory_id = request.POST.get('subcategoryId')
@@ -347,7 +351,7 @@ def drop_subcategory(request):
     return JsonResponse({'success':False})
 
 # brands.............................................................
-@login_required(login_url="dashboard_login")
+@user_passes_test(superuser_check)
 def list_brands(request):
     brands = Brand.objects.all()
     myFilter = BrandFilter(request.GET, queryset=brands)
@@ -355,7 +359,7 @@ def list_brands(request):
     context = {'all_brands' : filterd_brands, 'myFilter' : myFilter}
     return render(request, 'dashboard/other/brandlist.html', context)
 
-@login_required(login_url="dashboard_login")
+@user_passes_test(superuser_check)
 def create_brands(request):  
     if request.method == 'POST':
         form = BrandForm(request.POST, request.FILES)
@@ -369,7 +373,7 @@ def create_brands(request):
         form = BrandForm()
         return render(request, 'dashboard/other/addbrand.html', {'form':form})
 
-@login_required(login_url="dashboard_login")
+@user_passes_test(superuser_check)
 def update_brand(request, pk):
     brand = Brand.objects.get(id=pk)
     form = BrandForm(instance=brand)
@@ -386,7 +390,7 @@ def update_brand(request, pk):
         }    
         return render(request, 'dashboard/other/editbrand.html', context)
 
-@login_required(login_url="dashboard_login")
+@user_passes_test(superuser_check)
 def drop_brand(request):
     if request.method == 'POST':
         brand_id = request.POST.get('brandId')
@@ -397,7 +401,7 @@ def drop_brand(request):
     return JsonResponse({'success':False})
 
 # orders...........................................................................
-@login_required(login_url="dashboard_login")
+@user_passes_test(superuser_check)
 def list_orders(request):
     sales_from = request.GET.get("sales_from")
     sales_to = request.GET.get("sales_to")
@@ -489,7 +493,7 @@ def list_orders(request):
     context = {'orders':orders}
     return render(request, 'dashboard/other/orderlist.html', context)
 
-@login_required(login_url="dashboard_login")
+@user_passes_test(superuser_check)
 def edit_order(request, pk):
     order = Order.objects.get(id=pk)
     # form = OrderForm(instance=order)
@@ -513,7 +517,7 @@ def edit_order(request, pk):
     }
     return render(request, 'dashboard/other/editorder.html', context)
 
-@login_required(login_url="dashboard_login")
+@user_passes_test(superuser_check)
 def cancel_order(request):
     if request.method == 'POST':
         order_id = request.POST.get('order_id')
@@ -534,7 +538,7 @@ def cancel_order(request):
         return JsonResponse({'success':True})
     return JsonResponse({'success':False})
 
-@login_required(login_url="dashboard_login")
+@user_passes_test(superuser_check)
 def return_requests_list(request):
     pending_return_requests = ReturnRequest.objects.filter(status=1)
     context = {
@@ -542,7 +546,7 @@ def return_requests_list(request):
     }
     return render(request, 'dashboard/other/returnrequests.html', context)
 
-@login_required(login_url="dashboard_login")
+@user_passes_test(superuser_check)
 def approve_return_request(request, return_request_id):
     return_request = ReturnRequest.objects.get(id=return_request_id)
     return_request.status = 2
@@ -573,7 +577,7 @@ def approve_return_request(request, return_request_id):
     
     return redirect('read_return_requests')
 
-@login_required(login_url="dashboard_login")
+@user_passes_test(superuser_check)
 def reject_return_request(request, return_request_id):
     if request.method == 'POST':
         return_request = ReturnRequest.objects.get(id=return_request_id)
@@ -593,7 +597,7 @@ from django.http import HttpResponse
 from django.template.loader import get_template
 from django.views import View
 from xhtml2pdf import pisa
-
+@user_passes_test(superuser_check)
 def render_to_pdf(template_src, context_dict={}):
     template = get_template(template_src)
     html = template.render(context_dict)
@@ -662,6 +666,7 @@ class DownloadPDF(View):
 
 # Download Excel sales report
 import xlwt
+@user_passes_test(superuser_check)
 def download_excel(request):
     response = HttpResponse(content_type="application/ms-excel")
     response["Content-Disposition"] = (
@@ -720,7 +725,7 @@ def download_excel(request):
     wb.save(response)
     return response
 
-@login_required(login_url="dashboard_login")
+@user_passes_test(superuser_check)
 def list_sales(request):
     # orders = Order.objects.all()
     # context = {'orders':orders}

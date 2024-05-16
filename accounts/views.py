@@ -8,9 +8,10 @@ from store.models import Address, Order, OrderItem, Cart, CartItem, Wallet, Wall
 from accounts.models import Profile
 from django.http import JsonResponse
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.views.decorators.cache import never_cache
 # Create your views here.
 
-
+@never_cache
 def registerpage(request):
     if request.user.is_authenticated:
         return redirect('home')
@@ -53,6 +54,7 @@ def registerpage(request):
     context = {'form':form}
     return render(request, 'registration/register.html', context)
 
+@never_cache
 def loginpage(request):
     if request.user.is_authenticated:
         return redirect('home')
