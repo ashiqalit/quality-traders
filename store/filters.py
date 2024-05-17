@@ -1,5 +1,6 @@
 import django_filters
 from .models import Product, Category, Brand, Sub_category
+
 # class ProductFilter(django_filters.FilterSet):
 #     category = django_filters.ModelMultipleChoiceFilter(
 #         queryset=Category.objects.all(),

@@ -2,93 +2,110 @@ $('.pay_with_razorpay').click(function (e) {
     e.preventDefault();
     var csrftoken = $('input[name=csrfmiddlewaretoken]').val();
     var selectedAddress = $('input[name="selected_address"]:checked');
-    var payment_mode = $(this).val();
+    var selectedAddressId = selectedAddress.val();
     var grandTotalText = $('.grand_total').text();
     var grandTotalNumeric = parseFloat(grandTotalText.replace('₹', ''));
+    var checkoutData = $('#checkout-data');
+    var email = checkoutData.attr('data-email');
+    var name = checkoutData.attr('data-name');
+    // var payment_mode = $(this).val();
+    // var neworder = $(this).data('neworder');
+    // console.log(neworder)
     // console.log(payment_mode)
     // console.log(selectedAddress.val())
-    
+
     if (!selectedAddress.val()) {
         swal.fire({
-            icon:'error',
-            title:'Select an address',
-            timer:1000
+            icon: 'error',
+            title: 'Select an address',
+            timer: 1000
         })
         return false
     }
     else {
         $.ajax({
-            method: "GET",
-            url: "proceed-to-pay",
-            data: {
-                csrfmiddlewaretoken: csrftoken,
-                address_id: selectedAddress.val(),
-                grand_total: grandTotalNumeric, 
-               
+            url: "create-order",
+            type: "POST",
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'Content-Type': 'application/json',
+                "selected_address": selectedAddress.val(),
             },
-            success: function (response) {
-                // console.log("Response:", response);
-                var address = response.address
+            data: JSON.stringify({ selected_address_id: selectedAddressId }),
+        })
+            .done(function (data) {
                 var options = {
-                    "key": "rzp_test_1DBm3kToLW56S3", // Enter the Key ID generated from the Dashboard
-                    "amount": response.grand_total * 100, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
-                    "currency": "INR",
-                    "name": "Quality Traders", //your business name
-                    "description": "We serve you good",
-                    "image": "https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.svgrepo.com%2Fsvg%2F52605%2Fbill&psig=AOvVaw1GgGA5LKFC3Fn_MUhuJFlo&ust=1712034347561000&source=images&cd=vfe&opi=89978449&ved=0CBIQjRxqFwoTCNCat5ufoIUDFQAAAAAdAAAAABAE",
-                    // "order_id": response.order.id,
-                    "handler": function (responseb) {
-                        alert(responseb.razorpay_payment_id);
-                        data1 = {
-                            "selected_address": selectedAddress.val(),
-                            "payment_mode": payment_mode,
-                            "payment_id": responseb.razorpay_payment_id,
-                            csrfmiddlewaretoken: csrftoken,
-                        }
+                    key: 'rzp_test_1DBm3kToLW56S3',
+                    amount: grandTotalNumeric * 100,
+                    currency: "INR",
+                    name: "Quality Traders",
+                    description: "Order Payment",
+                    order_id: data.order_id,
+                    t_no: data.tracking_no,
+                    "prefill": {
+                        "name": name,
+                        "email": email,
+                    },
+                    handler: function (response) {
+                        console.log(response)
+                        var razorpay_order_id = response.razorpay_order_id;
+                        var razorpay_payment_id = response.razorpay_payment_id;
+                        console.log(razorpay_order_id, razorpay_payment_id)
+
                         $.ajax({
-                            method: "POST",
-                            url: "checkout",
-                            data: data1,
-                            success: function (responsec) {
+                            url: "handle-payment",
+                            type: "POST",
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': csrftoken
+                            },
+                            data: JSON.stringify({
+                                order_id: razorpay_order_id,
+                                payment_id: razorpay_payment_id
+                            })
+                        })
+                            .done(function (data) {
+                                if (data.message === 'Payment Successful') {
+                                    Swal.fire({
+                                        icon: "success",
+                                        title: data.message,
+                                        timer: 1500
+                                    }).then((result) => {
+                                        window.location.href = 'view-order/' + options.t_no;
+                                    })
+                                } else if (data.message === 'Payment Failed') {
+                                    Swal.fire({
+                                        icon: "error",
+                                        title: data.message,
+                                        timer: 1500
+                                    }).then((result) => {
+                                        window.location.href = 'view-order/' + options.t_no;
+                                    })
+                                }
+                            })
+                            .fail(function (jqXHR, textStatus, errorThrown) {
+                                console.error('An error occurred while processing the payment.', errorThrown);
                                 Swal.fire({
-                                    icon: "success",
-                                    title: responsec.status,
+                                    icon: "error",
+                                    description: "There was an issue processing your payment. Please try again.",
                                     timer: 1500
-                                }).then((result) => {
-                                    window.location.href = 'view-order/' + responsec.t_no;
                                 })
-                            }
-                        });
-                    },
-                    "prefill": { //We recommend using the prefill parameter to auto-fill customer's contact information, especially their phone number
-                        "name": address.fname + " " + address.lname, //your customer's name
-                        "email": address.email,
-                        "contact": address.phone  //Provide the customer's phone number for better conversion rates 
-                    },
-                    "theme": {
-                        "color": "#3399cc"
+                            });
                     }
                 };
                 var rzp1 = new Razorpay(options);
-                rzp1.on('payment.failed', function (response){
-                    // alert(response.error.code);
-                    alert(response.error.description);
-                    // alert(response.error.source);
-                    // alert(response.error.step);
-                    // alert(response.error.reason);
-                    // alert(response.error.metadata.order_id);
-                    // alert(response.error.metadata.payment_id);
-            });
                 rzp1.open();
-            },
-            error: function (xhr, status, error) {
-                console.error("AJAX Error:", error); // Log any AJAX errors for debugging
-            }
 
-
-        });
+            })
+            .fail(function (jqXHR, textStatus, errorThrown) {
+                console.error('Error creating order:', errorThrown);
+                Swal.fire({
+                    icon: "error",
+                    description: "There was an issue processing your payment. Please try again.",
+                    timer: 1500
+                })
+            })
 
     }
 }
 );
-

@@ -18,4 +18,3 @@ admin.site.register(Wallet)
 admin.site.register(WalletTransaction)
 admin.site.register(Banner)
 admin.site.register(ReturnRequest)
-

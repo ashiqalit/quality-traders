@@ -14,7 +14,7 @@ $('.add-to-cart').click(function (event) {
         success: function (response) {
             console.log('Product added to cart:', response);
             alertify.success(response.message);
-            document.getElementById("cart-counter").innerText = response.cart_counter          
+            document.getElementById("cart-counter").innerText = response.cart_counter
         },
         error: function (xhr, status, error) {
             console.error('Error adding product to cart:', error);
@@ -38,7 +38,7 @@ $('.cart_quantity_up').click(function (e) {
         },
         success: function (data, response) {
             if (data) {
-                if(data.success==true){
+                if (data.success == true) {
                     qty.innerText = data.quantity
                     document.getElementById("amount").innerText = '₹' + data.amount
                     document.getElementById("cart_total").innerText = '₹' + data.grand_total
@@ -46,16 +46,16 @@ $('.cart_quantity_up').click(function (e) {
                     document.getElementById("offer").innerText = data.offer_discount
                     document.getElementById("coupon_discount").innerText = data.coupon_discount
                 }
-                else if (data.success==false){
-                    
+                else if (data.success == false) {
+
                     Swal.fire({
                         title: data.message,
                         icon: 'error'
                     })
-                }   
+                }
             }
-                // document.getElementById("amount").innerText = data.amount
-            
+            // document.getElementById("amount").innerText = data.amount
+
         },
         error: function (xhr, status, error) {
             console.error('Error increasing the quantity:', error);
@@ -79,7 +79,7 @@ $('.cart_quantity_down').click(function (e) {
         },
         success: function (data, response) {
             if (data) {
-                if(data.success==true){
+                if (data.success == true) {
                     qty.innerText = data.quantity
                     document.getElementById("amount").innerText = '₹' + data.amount
                     document.getElementById("cart_total").innerText = '₹' + data.grand_total
@@ -87,16 +87,16 @@ $('.cart_quantity_down').click(function (e) {
                     document.getElementById("offer").innerText = data.offer_discount
                     document.getElementById("coupon_discount").innerText = data.coupon_discount
                 }
-                else if (data.success==false){
-                    
+                else if (data.success == false) {
+
                     Swal.fire({
                         title: data.message,
                         icon: 'error'
                     })
-                }   
+                }
             }
-                // document.getElementById("amount").innerText = data.amount
-            
+            // document.getElementById("amount").innerText = data.amount
+
         },
         error: function (xhr, status, error) {
             console.error('Error increasing the quantity:', error);

@@ -1,13 +1,13 @@
-$('.add-to-wishlist').click(function (e) { 
+$('.add-to-wishlist').click(function (e) {
     e.preventDefault();
-    
+
     var productId = $(this).data('product');
-    
+
     $.ajax({
         type: "POST",
         url: "/add-to-wishlist",
         data: {
-            'product_id':productId,
+            'product_id': productId,
             csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val(),
         },
         success: function (response) {
@@ -27,9 +27,9 @@ $('.add-to-wishlist').click(function (e) {
     });
 });
 
-$('.wishlist_item_delete').click(function (e) { 
+$('.wishlist_item_delete').click(function (e) {
     e.preventDefault();
-    
+
     var id = $(this).data('wishlist_items');
     var delete_icon = this
 
@@ -37,10 +37,10 @@ $('.wishlist_item_delete').click(function (e) {
         type: "GET",
         url: "/remove-wishlistitem",
         data: {
-            product_id:id,
+            product_id: id,
         },
         success: function (data, response) {
-            if (data){
+            if (data) {
                 document.getElementById("wishlist-counter").innerText = data.wishlist_count;
                 delete_icon.parentNode.parentNode.remove()
                 location.reload();
@@ -70,7 +70,7 @@ $('.add-to-wishlist-cart').click(function (event) {
             alertify.success(response.message);
             document.getElementById("cart-counter").innerText = response.cart_counter
             addToCartBtn.parentNode.parentNode.remove()
-                location.reload();
+            location.reload();
         },
         error: function (xhr, status, error) {
             console.error('Error adding product to cart:', error);

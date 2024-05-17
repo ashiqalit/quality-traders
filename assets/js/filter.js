@@ -1,19 +1,19 @@
 $(document).ready(function () {
     // console.log("script loaded")
-    $(".filter-checkbox").change(function (e) { 
+    $(".filter-checkbox").change(function (e) {
         e.preventDefault();
 
         console.log('A checkbox have been clicked')
 
         let filter_object = {}
 
-        $(".filter-checkbox-input").each(function () { 
+        $(".filter-checkbox-input").each(function () {
             let filter_key = $(this).data("filter")
             let filter_value = $(this).val()
 
             // console.log("Filter key is:", filter_key)
             // console.log("Filter value is:", filter_value)
-            filter_object[filter_key] = Array.from(document.querySelectorAll('input[data-filter=' + filter_key + ']:checked')).map(function(element){
+            filter_object[filter_key] = Array.from(document.querySelectorAll('input[data-filter=' + filter_key + ']:checked')).map(function (element) {
                 return element.value
             })
         });
@@ -22,7 +22,7 @@ $(document).ready(function () {
             url: "/filter-products",
             data: filter_object,
             dataType: "json",
-            beforeSend: function(){
+            beforeSend: function () {
                 console.log("Sending data...")
             },
             success: function (response) {
@@ -33,7 +33,7 @@ $(document).ready(function () {
         });
     });
 
-    $('.search-product-btn').click(function (e) { 
+    $('.search-product-btn').click(function (e) {
         e.preventDefault();
         // console.log('search btn')
         $.ajax({
@@ -44,6 +44,6 @@ $(document).ready(function () {
                 $("#filtered-product").html(response.data)
             }
         });
-        
+
     });
 });
