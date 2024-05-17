@@ -1,6 +1,24 @@
+# Standard library
+from datetime import datetime, timedelta
+from collections import defaultdict
+
+# Third party
+from dateutil.relativedelta import relativedelta
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages, admin
 from django.contrib.auth.models import User, Group
+from django.contrib import auth
+from django.http import JsonResponse, HttpResponseNotAllowed
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.core.files.storage import FileSystemStorage
+from django.db import transaction
+from django.contrib.admin.views.decorators import staff_member_required
+from django.db.models import Count
+from django.db.models import Sum
+from django.views.decorators.cache import never_cache
+
+# Local application
 from store.models import (
     Category,
     Product,
@@ -14,7 +32,7 @@ from store.models import (
     Coupon,
     Product,
 )
-from django.contrib import auth
+
 from .filters import (
     UserFilter,
     CategoryFilter,
@@ -31,18 +49,6 @@ from .forms import (
     OrderForm,
     CouponForm,
 )
-from django.http import JsonResponse, HttpResponseNotAllowed
-from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.core.files.storage import FileSystemStorage
-from django.db import transaction
-from datetime import datetime, timedelta
-from dateutil.relativedelta import relativedelta
-from django.contrib.admin.views.decorators import staff_member_required
-from django.db.models import Count
-from django.db.models import Sum
-from collections import defaultdict
-from django.views.decorators.cache import never_cache
 
 
 def superuser_check(user):

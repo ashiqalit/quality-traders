@@ -1,10 +1,11 @@
+import random
+import string
 from django.db import models
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django import forms
 from phonenumber_field.modelfields import PhoneNumberField
-import random
-import string
+
 
 
 # Create your models here.

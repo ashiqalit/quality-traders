@@ -1,5 +1,11 @@
+# Standard library
 import uuid
 import datetime
+from decimal import Decimal
+
+# Third party
+from phonenumber_field.modelfields import PhoneNumberField
+from PIL import Image
 from django.db import models
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import Point
@@ -9,10 +15,8 @@ from django import forms
 from django.utils import timezone
 from django.urls import reverse
 from django.conf import settings
-from phonenumber_field.modelfields import PhoneNumberField
 from django.core.validators import MinValueValidator, MaxValueValidator
-from decimal import Decimal
-from PIL import Image
+
 
 # Create your models here.
 

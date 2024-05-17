@@ -1,8 +1,15 @@
+# Django
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.views.decorators.cache import never_cache
+
+# Local application
 from .forms import CreateUserForm, UserUpdateForm, ProfileUpdateForm
+from accounts.models import Profile
 from store.forms import AddressForm
 from store.models import (
     Address,
@@ -13,11 +20,6 @@ from store.models import (
     Wallet,
     WalletTransaction,
 )
-from accounts.models import Profile
-from django.http import JsonResponse
-from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from django.views.decorators.cache import never_cache
-
 # Create your views here.
 
 
