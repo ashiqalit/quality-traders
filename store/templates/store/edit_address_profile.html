@@ -20,50 +20,50 @@
                         <div class="panel panel-default">
                             <div class="panel-heading">
                                 <h3>Enter a new address</h3>
-                             </div>
+                            </div>
                             <div class="panel-body panel-shadow"
                                 style="display: flex; flex-direction: column; align-items: stretch;">
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <div class="panel">
-                                            <div class="panel-body">
-                                                <form method="post">
+
+                                <div class="panel">
+                                    <div class="panel-body">
+                                        <form method="post">
+                                            <div class="row">
+                                                <div class="col-md-12">
                                                     {% csrf_token %}
                                                     <div class="form-row">
-                                                        <div class="form-group col-md-6 mb-0">
+                                                        <div class="form-group col-md-4 mb-0">
                                                             {{ form.fname|as_crispy_field }}
                                                         </div>
-                                                        <div class="form-group col-md-6 mb-0">
+                                                        <div class="form-group col-md-4 mb-0">
                                                             {{ form.lname|as_crispy_field }}
                                                         </div>
-                                                    </div>
-                                                    <div class="form-row">
                                                         <div class="form-group col-md-4 mb-0">
                                                             {{ form.email|as_crispy_field }}
                                                         </div>
+                                                    </div>
+                                                    <div class="form-row">
                                                         <div class="form-group col-md-4 mb-0">
                                                             {{ form.phone|as_crispy_field }}
                                                         </div>
                                                         <div class="form-group col-md-4 mb-0">
                                                             {{ form.pincode|as_crispy_field }}
                                                         </div>
-                                                    </div>
-                                                    <div class="form-row">
-                                                        <div class="form-group col-md-12">
+                                                        <div class="form-group col-md-4 mb-0">
                                                             {{ form.address|as_crispy_field }}
                                                         </div>
                                                     </div>
                                                     <div class="form-row">
-                                                        <div class="form-group">
+                                                        <div class="form-group col-md-12 text-right">
                                                             <button type="submit"
-                                                                class="btn btn-default check_out">Submit</button>
+                                                                class="btn btn-default btn-lg check_out">Submit</button>
                                                         </div>
                                                     </div>
                                                     <!-- <input type="hidden" value="COD" name="payment_mode"> -->
-                                                </form>
+                                                </div>
                                             </div>
-                                        </div>
+                                        </form>
                                     </div>
+
                                 </div>
                             </div>
                         </div>
@@ -85,7 +85,8 @@
                                             <div class="panel-body"
                                                 style="display: flex; flex-direction: column; align-items: stretch;">
                                                 <div>
-                                                    <p><span>{{ address.fname }}</span>&nbsp<span>{{ address.lname }}</span></p>
+                                                    <p><span>{{ address.fname }}</span>&nbsp<span>{{ address.lname
+                                                            }}</span></p>
                                                     <p>{{ address.email }}</p>
                                                     <p>{{ address.phone }}</p>
                                                     <p>Pin: {{ address.pincode }}</p>
@@ -109,8 +110,8 @@
                                 {% else %}
                                 <h3>No addresses were added.</h3>
                                 {% endif %}
-                        
-                        
+
+
                             </div>
                         </div>
                     </div>
@@ -119,20 +120,20 @@
                         <nav aria-label="Page Navigation">
                             <ul class="pagination">
                                 {% if addresses.has_previous %}
-                                    <li><a href="?page=1">First</a></li> 
-                                    <li><a href="?page={{ addresses.previous_page_number }}">Previous</a></li>
+                                <li><a href="?page=1">First</a></li>
+                                <li><a href="?page={{ addresses.previous_page_number }}">Previous</a></li>
                                 {% endif %}
                                 {% for num in addresses.paginator.page_range %}
-                                        {% if addresses.number == num %}
-                                            <li class="active"><a href="?page={{ num }}">{{ num }}</a></li>
-                                        {% elif num > addresses.number|add:'-3' and num < addresses.number|add:'3' %}
-                                            <li><a href="?page={{ num }}">{{ num }}</a></li>
-                                        {% endif %}
-                                {% endfor %}
-                                {% if addresses.has_next %}
-                                <li><a href="?page={{ addresses.next_page_number }}">Next</a></li>
-                                <li><a href="?page={{ addresses.paginator.num_pages }}">Last</a></li>
-                                {% endif %}
+                                {% if addresses.number == num %}
+                                <li class="active"><a href="?page={{ num }}">{{ num }}</a></li>
+                                {% elif num > addresses.number|add:'-3' and num < addresses.number|add:'3' %} <li><a
+                                        href="?page={{ num }}">{{ num }}</a></li>
+                                    {% endif %}
+                                    {% endfor %}
+                                    {% if addresses.has_next %}
+                                    <li><a href="?page={{ addresses.next_page_number }}">Next</a></li>
+                                    <li><a href="?page={{ addresses.paginator.num_pages }}">Last</a></li>
+                                    {% endif %}
                             </ul>
                         </nav>
                     </div>

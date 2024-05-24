@@ -1,4 +1,5 @@
 from django import forms
+from django.core.exceptions import ValidationError
 from phonenumber_field.formfields import PhoneNumberField
 from .models import Address
 
@@ -40,3 +41,33 @@ class AddressForm(forms.ModelForm):
     class Meta:
         model = Address
         fields = ("fname", "lname", "email", "phone", "pincode", "address")
+    
+    def clean_fname(self):
+        fname = self.cleaned_data.get('fname').strip()
+        if not fname:
+            raise ValidationError('First name cannot be empty')
+        return fname
+    
+    def clean_lname(self):
+        lname = self.cleaned_data.get('lname').strip()
+        if not lname:
+            raise ValidationError('Last name cannot be empty')
+        return lname
+    
+    def clean_email(self):
+        email = self.cleaned_data.get('email').strip()
+        if not email:
+            raise ValidationError('Email cannot be empty')
+        return self.cleaned_data["email"]
+  
+    def clean_pincode(self):
+        pincode = self.cleaned_data.get('pincode').strip()
+        if not pincode:
+            raise ValidationError('Pincode cannot be empty')
+        return self.cleaned_data["pincode"]
+  
+    def clean_address(self):
+        address = self.cleaned_data.get('address').strip()
+        if not address:
+            raise ValidationError('Address cannot be empty')
+        return self.cleaned_data["address"]

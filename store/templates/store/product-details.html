@@ -10,7 +10,7 @@
 				<div class="product-details"><!--product-details-->
 					<div class="col-sm-5">
 						<div class="view-product">
-							<img src="/media/{{ product.image }}" alt="" />
+							<img src="/media/{{ product.image }}" alt="Product image" />
 							<!-- <h3>ZOOM</h3> -->
 						</div>
 					</div>
@@ -366,3 +366,11 @@
 </section>
 
 {% endblock content %}
+{% block scripts %}
+<script>
+	$(document).ready(function() {
+		initializeAddToCartButtons();
+		initializeAddToWishlistButtons();
+	});
+</script>
+{% endblock scripts %}

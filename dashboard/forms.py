@@ -1,6 +1,7 @@
 from django import forms
 from django.forms import ModelForm
-from store.models import Category, Product, Sub_category, Brand, Order, Coupon
+from django.core.exceptions import ValidationError
+from store.models import Category, Product, Sub_category, Brand, Order, Coupon, Offer
 
 # from django.contrib.auth.hashers import make_password
 from bootstrap_datepicker_plus.widgets import DatePickerInput, TimePickerInput
@@ -29,16 +30,46 @@ class ProductForm(ModelForm):
             "availability",
             "quantity",
         )
+    
+    def clean_price(self):
+        price = self.cleaned_data.get('price')
+        if price and price < 0:
+            raise ValidationError('Negative price not allowed')
+        return price  
+    
+    def clean_quantity(self):
+        quantity = self.cleaned_data.get('quantity')
+        if quantity and quantity < 0:
+            raise ValidationError('Negative quantity not allowed')
+        return quantity  
 
-
+    def clean_name(self):
+        name = self.cleaned_data.get('name').strip()
+        if not name:
+            raise ValidationError('Name cannot be empty')
+        return name
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        return cleaned_data
+    
 class SubCategoryForm(ModelForm):
     class Meta:
         model = Sub_category
-        fields = ("name", "category")
+        fields = ("name", "category", "offer")
         widgets = {
             "name": forms.TextInput(attrs={"class": "form-control"}),
         }
-
+    
+    def clean_name(self):
+        name = self.cleaned_data.get('name').strip()
+        if not name:
+            raise ValidationError('Name cannot be empty')
+        return name
+  
+    def clean(self):
+        cleaned_data = super().clean()
+        return cleaned_data
 
 class BrandForm(ModelForm):
     class Meta:
@@ -54,7 +85,13 @@ class OrderForm(ModelForm):
         model = Order
         fields = ("status",)
 
-
+    # def __init__(self, *args, **kwargs):
+    #     super(OrderForm, self).__init__(*args, **kwargs)
+    #     # Exclude the 'Cancel' status
+    #     self.fields['status'].choices = [
+    #         choice for choice in Order.order_status if choice[0] != 6
+    #     ]
+        
 class CouponForm(ModelForm):
     class Meta:
         model = Coupon
@@ -63,3 +100,54 @@ class CouponForm(ModelForm):
             "valid_from": forms.DateInput(attrs={"type": "date"}),
             "valid_to": forms.DateInput(attrs={"type": "date"}),
         }
+
+    def clean_discount(self):
+        discount = self.cleaned_data.get('discount')
+        if discount and discount < 0:
+            raise ValidationError('Negative discount not allowed')
+        return discount
+
+    def clean(self):
+        cleaned_data = super().clean()
+        valid_from = self.cleaned_data.get('valid_from')
+        valid_to = self.cleaned_data.get('valid_to')
+        
+        if valid_from and valid_to and valid_from > valid_to:
+            raise ValidationError({
+                'valid_from': 'From date cannot be greater than to date',
+                'valid_to': 'To date cannot be less than from date',
+            })
+        return cleaned_data
+
+class OfferForm(ModelForm):
+    class Meta:
+        model = Offer
+        fields = ("name", "valid_from", "valid_to", "discount", "is_active")
+        widgets = {
+            "valid_from": forms.DateInput(attrs={"type": "date"}),
+            "valid_to": forms.DateInput(attrs={"type": "date"}),
+        }
+
+    def clean_name(self):
+        name = self.cleaned_data.get("name").strip()
+        if not name:
+            raise ValidationError("Name cannot be empty")
+        return name
+
+    def clean_discount(self):
+        discount = self.cleaned_data.get('discount')
+        if discount and discount < 0:
+            raise ValidationError('Negative discount not allowed')
+        return discount
+
+    def clean(self):
+        cleaned_data = super().clean()
+        valid_from = self.cleaned_data.get('valid_from')
+        valid_to = self.cleaned_data.get('valid_to')
+        
+        if valid_from and valid_to and valid_from > valid_to:
+            raise ValidationError({
+                'valid_from': 'From date cannot be greater than to date',
+                'valid_to': 'To date cannot be less than from date',
+            })
+        return cleaned_data

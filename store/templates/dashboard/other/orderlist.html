@@ -134,15 +134,15 @@
                                     <a class="me-3" href="{% url 'edit_order' order.id %}">
                                         <img src="{% static 'assets/img/icons/edit.svg' %}" alt="img">
                                     </a>
-                                    {% if order.status < 4 %}
+                                    {% if order.status > 1 and ordere.status < 5 %}
                                     <button class="me-3 btn btn-danger btn-sm cancel-order-dash" data-order-id="{{ order.id }}" href="#">
                                         Cancel
                                     </button>
-                                    {% elif order.status == 5 %}
+                                    {% elif order.status == 6 %}
                                     <button class="me-3 btn btn-default btn-sm cancelled-msg" href="#">
                                         Cancelled
                                     </button>
-                                    {% elif order.status == 6 %}
+                                    {% elif order.status == 7 %}
                                     <button class="me-3 btn btn-default btn-sm" href="#">
                                         Pick it
                                     </button>

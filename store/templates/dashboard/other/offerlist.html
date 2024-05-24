@@ -1,0 +1,136 @@
+{% extends "dashboard/layouts/main-admin.html" %}
+{% block content %}
+{% load static %}
+<div class="page-wrapper">
+    <div class="content">
+        <div class="page-header">
+            <div class="page-title">
+                <h4>Offer List</h4>
+                <h6>Manage your Offers</h6>
+            </div>
+            <div class="page-btn">
+                <a href="{% url 'create_offer' %}" class="btn btn-added"><img src="{% static 'assets/img/icons/plus.svg' %}" class="me-2"
+                        alt="img">Add Offer</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="table-top">
+                    <div class="search-set">
+                        <div class="search-path">
+                            <a class="btn btn-filter" id="filter_search">
+                                <img src="{% static 'assets/img/icons/filter.svg' %}" alt="img">
+                                <span><img src="{% static 'assets/img/icons/closes.svg' %}" alt="img"></span>
+                            </a>
+                        </div>
+                        <div class="search-input">
+                            <a class="btn btn-searchset"><img src="{% static 'assets/img/icons/search-white.svg' %}" alt="img"></a>
+                        </div>
+                    </div>
+                    <div class="wordset">
+                        <ul>
+                            <li>
+                                <a data-bs-toggle="tooltip" data-bs-placement="top" title="pdf"><img
+                                        src="{% static 'assets/img/icons/pdf.svg' %}" alt="img"></a>
+                            </li>
+                            <li>
+                                <a data-bs-toggle="tooltip" data-bs-placement="top" title="excel"><img
+                                        src="{% static 'assets/img/icons/excel.svg' %}" alt="img"></a>
+                            </li>
+                            <li>
+                                <a data-bs-toggle="tooltip" data-bs-placement="top" title="print"><img
+                                        src="{% static 'assets/img/icons/printer.svg' %}" alt="img"></a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card" id="filter_inputs">
+                    <div class="card-body pb-0">
+                        <div class="row">
+                            <div class="col-lg-3 col-sm-6 col-12">
+                                <div class="form-group">
+                                    <input type="text" placeholder="Enter Brand Name">
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-sm-6 col-12">
+                                <div class="form-group">
+                                    <input type="text" placeholder="Enter Brand Description">
+                                </div>
+                            </div>
+                            <div class="col-lg-1 col-sm-6 col-12 ms-auto">
+                                <div class="form-group">
+                                    <a class="btn btn-filters ms-auto"><img src="{% static 'assets/img/icons/search-whites.svg' %}"
+                                            alt="img"></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table datanew">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <label class="checkboxs">
+                                        <input type="checkbox" id="select-all">
+                                        <span class="checkmarks"></span>
+                                    </label>
+                                </th>
+                                <!-- <th>Image</th> -->
+                                <th>Offer Name</th>
+                                <th>Valid From</th>
+                                <th>Valid To</th>
+                                <th>Discount</th>
+                                <th>Active Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for offer in all_offers %}
+                            <tr>
+                                <td>
+                                    <label class="checkboxs">
+                                        <input type="checkbox">
+                                        <span class="checkmarks"></span>
+                                    </label>
+                                </td>
+                                <!-- <td>
+                                    {% if brand.image %}
+                                    <a class="product-img">
+                                        <img src="{{brand.image.url}}" alt="brand">
+                                    </a>
+                                    {% endif %}
+                                </td> -->
+                                <td>{{offer.name}}</td>
+                                <td>{{offer.valid_from}}</td>
+                                <td>{{offer.valid_to}}</td>
+                                <td>{{offer.discount}}</td>
+                                <td>{{offer.is_active}}</td>
+                                <td>
+                                    <a class="me-3" href="{% url 'edit_offer' offer.id %}">
+                                        <img src="{% static 'assets/img/icons/edit.svg' %}" alt="img">
+                                    </a>
+                                    <a class="me-3 confirm-text-offer" href="javascript:void(0);" data-offer-id="{{ offer.id }}">
+                                        <img src="{% static 'assets/img/icons/delete.svg' %}" alt="img">
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock content %}
+{% block script %}
+<script>
+    var deleteUrl = "{% url 'delete_offer' %}";
+    const csrf_token = "{{ csrf_token }}";
+</script>
+{% endblock script %}

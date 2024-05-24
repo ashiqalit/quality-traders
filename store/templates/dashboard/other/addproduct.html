@@ -17,14 +17,24 @@
                     <div class="row">
                         <div class="col-lg-3 col-sm-6 col-12">
                             <div class="form-group">
-                               {{form.name.label}}
-                               {{form.name}}
+                                {{form.name.label}}
+                                {{form.name}}
+                                {% if form.name.errors %}
+                                    <div class="text-danger">
+                                        {{ form.name.errors }}
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="col-lg-3 col-sm-6 col-12">
                             <div class="form-group">
                                 {{form.category.label}}
                                 {{form.category}}
+                                {% if form.category.errors %}
+                                    <div class="text-danger">
+                                        {{ form.category.errors }}
+                                    </div>
+                                {% endif %}
                                 
                             </div>
                         </div>
@@ -32,88 +42,66 @@
                             <div class="form-group">
                                 {{form.sub_category.label}}
                                 {{form.sub_category}}
+                                {% if form.sub_category.errors %}
+                                    <div class="text-danger">
+                                        {{ form.sub_category.errors }}
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="col-lg-3 col-sm-6 col-12">
                             <div class="form-group">
                                 {{form.brand.label}}
                                 {{form.brand}}
+                                {% if form.brand.errors %}
+                                    <div class="text-danger">
+                                        {{ form.brand.errors }}
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
-                        <!-- <div class="col-lg-3 col-sm-6 col-12">
-                            <div class="form-group">
-                                
-                                <select class="select">
-                                    <option>Choose Unit</option>
-                                    <option>Unit</option>
-                                </select>
-                            </div>
-                        </div> -->
-                        <!-- <div class="col-lg-3 col-sm-6 col-12">
-                            <div class="form-group">
-                                <label>SKU</label>
-                                <input type="text">
-                            </div>
-                        </div> -->
-                        <!-- <div class="col-lg-3 col-sm-6 col-12">
-                            <div class="form-group">
-                                <label>Minimum Qty</label>
-                                <input type="text">
-                            </div>
-                        </div> -->
                         <div class="col-lg-3 col-sm-6 col-12">
                             <div class="form-group">
                                 {{form.quantity.label}}
                                 {{form.quantity}}
+                                {% if form.quantity.errors %}
+                                    <div class="text-danger">
+                                        {{ form.quantity.errors }}
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
-                        <!-- <div class="col-lg-3 col-sm-6 col-12">
-                            <div class="form-group">
-                                {{form.availability.label}}
-                                {{form.availability}}
-                            </div>
-                        </div> -->
-                        <!-- <div class="col-lg-12">
-                            <div class="form-group">
-                                <label>Description</label>
-                                <textarea class="form-control"></textarea>
-                            </div>
-                        </div> -->
-                        <!-- <div class="col-lg-3 col-sm-6 col-12">
-                            <div class="form-group">
-                                <label>Tax</label>
-                                <select class="select">
-                                    <option>Choose Tax</option>
-                                    <option>2%</option>
-                                </select>
-                            </div>
-                        </div> -->
-                        <!-- <div class="col-lg-3 col-sm-6 col-12">
-                            <div class="form-group">
-                                <label>Discount Type</label>
-                                <select class="select">
-                                    <option>Percentage</option>
-                                    <option>10%</option>
-                                    <option>20%</option>
-                                </select>
-                            </div>
-                        </div> -->
                         <div class="col-lg-3 col-sm-6 col-12">
                             <div class="form-group">
                                 {{form.price.label}}
                                 {{form.price}}
+                                {% if form.price.errors %}
+                                    <div class="text-danger">
+                                        {{ form.price.errors }}
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="col-lg-3 col-sm-6 col-12">
                             <div class="form-group">
                                 {{form.offer.label}}(%)
                                 {{form.offer}}
+                                {% if form.offer.errors %}
+                                    <div class="text-danger">
+                                        {{ form.offer.errors }}
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="col-lg-3 col-sm-6 col-12">
                             <div class="form-group">
                                 {{form.availability.label}}
                                 {{form.availability}}
+                                {% if form.availability.errors %}
+                                    <div class="text-danger">
+                                        {{ form.availability.errors }}
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="col-lg-12">
@@ -122,11 +110,18 @@
                                 <div class="image-upload">
                                     {{form.image}}
                                     <div class="image-uploads">
-                                        <img src="{% static 'assets/img/icons/upload.svg' %}" alt="img">
+                                        <!-- <img src="{% static 'assets/img/icons/upload.svg' %}" alt="img"> -->
+                                        <img id="uploadedImagePreview" src="{% static 'assets/img/icons/upload.svg' %}" alt="img" style="max-width: 100px;">
                                         <h4>Drag and drop a file to upload</h4>
                                     </div>
                                 </div>
+                                {% if form.image.errors %}
+                                    <div class="text-danger">
+                                        {{ form.image.errors }}
+                                    </div>
+                                {% endif %}
                             </div>
+                        
                         </div>
                         <div class="col-lg-12">
                             <button type="submit" class="btn btn-submit me-2">Submit</button>

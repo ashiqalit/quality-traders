@@ -29,6 +29,8 @@ $(document).ready(function () {
                 console.log(response)
                 console.log('Data filtered successfully')
                 $("#filtered-product").html(response.data)
+                initializeAddToCartButtons(); 
+                initializeAddToWishlistButtons();
             },
         });
     });
@@ -42,8 +44,13 @@ $(document).ready(function () {
             dataType: "json",
             success: function (response) {
                 $("#filtered-product").html(response.data)
+                initializeAddToCartButtons(); 
+                initializeAddToWishlistButtons();
             }
         });
 
     });
 });
+
+initializeAddToCartButtons(); 
+initializeAddToWishlistButtons();

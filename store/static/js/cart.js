@@ -1,26 +1,27 @@
-
-$('.add-to-cart').click(function (event) {
-    event.preventDefault();
-
-    var productId = $(this).data('product');
-
-    $.ajax({
-        url: '/add-to-cart',
-        type: 'POST',
-        data: {
-            'product_id': productId,
-            csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val(),
-        },
-        success: function (response) {
-            console.log('Product added to cart:', response);
-            alertify.success(response.message);
-            document.getElementById("cart-counter").innerText = response.cart_counter
-        },
-        error: function (xhr, status, error) {
-            console.error('Error adding product to cart:', error);
-        }
+function initializeAddToCartButtons() {
+    $('.add-to-cart').click(function (event) {
+        event.preventDefault();
+    
+        var productId = $(this).data('product');
+    
+        $.ajax({
+            url: '/add-to-cart',
+            type: 'POST',
+            data: {
+                'product_id': productId,
+                csrfmiddlewaretoken: csrftoken, // csrftoken declared in index.html
+            },
+            success: function (response) {
+                console.log('Product added to cart:', response);
+                alertify.success(response.message);
+                document.getElementById("cart-counter").innerText = response.cart_counter
+            },
+            error: function (xhr, status, error) {
+                console.error('Error adding product to cart:', error);
+            }
+        });
     });
-});
+}
 
 $('.cart_quantity_up').click(function (e) {
     e.preventDefault();
@@ -140,30 +141,47 @@ $('.address_delete').click(function (e) {
 
     var id = $(this).attr("pid").toString();
     var address = this
-
-    $.ajax({
-        type: "GET",
-        url: "remove-address",
-        data: {
-            address_id: id,
+    Swal.fire({
+        title: "Are you sure?",
+        text: "You won't be able to revert this!",
+        type: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, delete it!",
+        customClass: {
+            confirmButton: "btn btn-success",
+            cancelButton: "btn btn-danger ml-1"
         },
-        success: function (response, data) {
-            if (response) {
-                address.parentNode.parentNode.remove()
-                alertify.success(response.message)
-                if (response.address_count) {
-                    document.getElementById("address_count").innerText = response.address_count;
-                }
-                else {
-                    document.getElementById("address_count").innerText = '0';
-                }
-            }
+        buttonsStyling: true
+    }).then(function (result) {
+        if (result.value) {
+            $.ajax({
+                type: "GET",
+                url: "remove-address",
+                data: {
+                    address_id: id,
+                },
+                success: function (response, data) {
+                    if (response) {
+                        address.parentNode.parentNode.remove()
+                        alertify.success(response.message)
+                        if (response.address_count) {
+                            document.getElementById("address_count").innerText = response.address_count;
+                        }
+                        else {
+                            document.getElementById("address_count").innerText = '0';
+                        }
+                    }
+                    location.reload()
 
-        },
-        error: function (xhr, status, error) {
-            console.error('Error deleting the address:', error);
-        }
-    });
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error deleting the address:', error);
+                }
+            });
+                }
+            });
 });
 
 // button width..................................................
@@ -190,82 +208,119 @@ $('.order_cancel').click(function (e) {
     var orderStatusCell = $('#order_status_' + id);
     var buttonsCell = $(this).closest('tr').find('.buttons');
 
-    $.ajax({
-        type: "GET",
-        url: "/cancel-order",
-        data: {
-            order_id: id,
+    Swal.fire({
+        title: "Are you sure?",
+        text: "You won't be able to revert this!",
+        type: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, delete it!",
+        customClass: {
+            confirmButton: "btn btn-success",
+            cancelButton: "btn btn-danger ml-1"
         },
-        success: function (response, data) {
-            if (response) {
-                orderStatusCell.text('Cancel');
-                Swal.fire({
-                    title: response.message,
-                    icon: "success"
-                }).then(function () {
+        buttonsStyling: true
+    }).then(function (result) {
+        if (result.value) {
+            e.preventDefault();
+            // User confirmed the delete action
+            $.ajax({
+                type: "GET",
+                url: "/cancel-order",
+                data: {
+                    order_id: id,
+                },
+                success: function (response, data) {
+                    if (response) {
+                        orderStatusCell.text('Cancel');
+                        Swal.fire({
+                            title: response.message,
+                            icon: "success"
+                        }).then(function () {
 
-                    $.get(window.location.href, function (data) {
-                        var cancelledMsgButton = $('<button class="btn btn-default cancel_return">---</button>');
-                        buttonsCell.find('.order_cancel').replaceWith(cancelledMsgButton);
-                        setButtonWidth('.buttons');
-                    });
-                });
+                            $.get(window.location.href, function (data) {
+                                var cancelledMsgButton = $('<button class="btn btn-default cancel_return">---</button>');
+                                buttonsCell.find('.order_cancel').replaceWith(cancelledMsgButton);
+                                setButtonWidth('.buttons');
+                            });
+                        });
 
 
-            }
+                    }
 
-        },
-        error: function (xhr, status, error) {
-            console.error('Error deleting the address:', error);
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error deleting the address:', error);
+                }
+            });
         }
     });
 });
 
 // return order
 $('.return_order').click(function (e) {
-    e.preventDefault();
 
     var id = $(this).attr("pid").toString();
     var orderStatusCell = $('#order_status_' + id);
     var buttonsCell = $(this).closest('tr').find('.buttons');
 
-    $.ajax({
-        type: "POST",
-        url: "/return-order",
-        data: {
-            order_id: id,
-            csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val(),
+    Swal.fire({
+        title: "Are you sure?",
+        text: "You won't be able to revert this!",
+        type: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, delete it!",
+        customClass: {
+            confirmButton: "btn btn-success",
+            cancelButton: "btn btn-danger ml-1"
         },
-        success: function (response, data) {
-            if (response) {
-                // orderStatusCell.text('Return');
-                Swal.fire({
-                    title: 'Returning order',
-                    description: response.message,
-                    icon: "success"
-                })
-                // .then(function () {
+        buttonsStyling: true
+    }).then(function (result) {
+        if (result.value) {
+            e.preventDefault(e);
+            // User confirmed the delete action
+            $.ajax({
+                type: "POST",
+                url: "/return-order",
+                data: {
+                    order_id: id,
+                    csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val(),
+                },
+                success: function (response, data) {
+                    if (response) {
+                        // orderStatusCell.text('Return');
+                        Swal.fire({
+                            title: 'Return request sent',
+                            description: response.message,
+                            icon: "success"
+                        })
+                        // .then(function () {
 
-                //     $.get(window.location.href, function (data) {
-                //         var cancelledMsgButton = $('<button class="btn btn-default cancel_return">---</button>');
-                //         buttonsCell.find('.return_order').replaceWith(cancelledMsgButton);
-                //         setButtonWidth('.buttons');
-                //     });
-                // });
+                        //     $.get(window.location.href, function (data) {
+                        //         var cancelledMsgButton = $('<button class="btn btn-default cancel_return">---</button>');
+                        //         buttonsCell.find('.return_order').replaceWith(cancelledMsgButton);
+                        //         setButtonWidth('.buttons');
+                        //     });
+                        // });
 
 
-            }
+                    }
 
-        },
-        error: function (xhr, status, error) {
-            if (xhr.status === 400) {
-                Swal.fire({
-                    title: xhr.responseJSON.error,
-                    icon: "error"
-                });
-            } else {
-                console.error('Error in returning the order:', error);
-            }
+                },
+                error: function (xhr, status, error) {
+                    if (xhr.status === 400) {
+                        Swal.fire({
+                            title: xhr.responseJSON.error,
+                            icon: "error"
+                        });
+                    } else {
+                        console.error('Error in returning the order:', error);
+                    }
+                }
+            });
         }
     });
 });

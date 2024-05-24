@@ -14,10 +14,7 @@ import os
 from pathlib import Path
 
 # .env
-from dotenv import load_dotenv
-
-# load environment variables from .env file
-load_dotenv()
+from decouple import config, Csv
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -26,12 +23,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', cast=bool, default=False)
+CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=True, cast=bool)
+SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=True, cast=bool)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS_STRING = config('ALLOWED_HOSTS', default='')
+
+if ALLOWED_HOSTS_STRING:
+    ALLOWED_HOSTS = ALLOWED_HOSTS_STRING.split(',')
 
 
 # Application definition
@@ -97,18 +99,19 @@ WSGI_APPLICATION = "quality-traders.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "quality-traders",
-        "USER": "postgres",
-        "PASSWORD": "1234",
-        "HOST": "localhost",
+        "NAME": config("DB_NAME"),
+        "USER": config("DB_USER"),
+        "PASSWORD": config("DB_PASSWORD"),
+        "HOST": config("DB_HOST"),
+        "PORT": config("DB_PORT", default="5432"),
     },
     "gis_db": {
         "ENGINE": "django.contrib.gis.db.backends.postgis",
-        "NAME": "gis",
-        "USER": "postgres",
-        "PASSWORD": "1234",
-        "HOST": "localhost",
-        # 'PORT': '5432',
+        "NAME": config("GIS_DB_NAME"),
+        "USER": config("GIS_DB_USER"),
+        "PASSWORD": config("GIS_DB_PASSWORD"),
+        "HOST": config("GIS_DB_HOST"),
+        "PORT": config("GIS_DB_PORT", default="5432"),
     },
 }
 
@@ -135,13 +138,13 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = config("LANGUAGE_CODE")
 
-TIME_ZONE = "UTC"
+TIME_ZONE = config("TIME_ZONE")
 
-USE_I18N = True
+USE_I18N = config("USE_I18N")
 
-USE_TZ = True
+USE_TZ = config("USE_TZ")
 
 
 # Static files (CSS, JavaScript, Images)
@@ -162,11 +165,11 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 # smtp configuration
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.gmail.com"
-EMAIL_USE_TLS = True
-EMAIL_PORT = 587
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+EMAIL_HOST = config("EMAIL_HOST")
+EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=True, cast=bool)
+EMAIL_PORT = config("EMAIL_PORT", cast=int)
+EMAIL_HOST_USER = config("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
 
 # crispy
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap3"
@@ -178,5 +181,5 @@ GEOS_LIBRARY_PATH = "C:\\OSGeo4W\\bin\\geos_c.dll"
 
 # Razorpay credentials
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
-RAZOR_KEY_ID = os.getenv("RAZOR_KEY_ID")
-RAZOR_KEY_SECRET = os.getenv("RAZOR_KEY_SECRET")
+RAZOR_KEY_ID = config("RAZOR_KEY_ID")
+RAZOR_KEY_SECRET = config("RAZOR_KEY_SECRET")

@@ -22,7 +22,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class Category(models.Model):
-    name = models.CharField(max_length=150)
+    name = models.CharField(max_length=150, unique=True)
 
     def __str__(self):
         return self.name
@@ -71,9 +71,11 @@ class Product(models.Model):
     Availability = (("In stock", "In stock"), ("Out of stock", "Out of stock"))
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     sub_category = models.ForeignKey(Sub_category, on_delete=models.CASCADE)
-    image = models.ImageField(upload_to="ecommerce/p-img")
+    image = models.ImageField(
+        default="ecommerce/p-img/default-product-image.jpg", upload_to="ecommerce/p-img"
+        )
     name = models.CharField(max_length=150)
-    price = models.IntegerField()
+    price = models.DecimalField(decimal_places=2,max_digits=10, validators=[MinValueValidator(Decimal('0.01'))])
     date = models.DateField(auto_now_add=True)
     brand = models.ForeignKey(Brand, on_delete=models.CASCADE)
     availability = models.CharField(choices=Availability, null=True, max_length=100)
@@ -288,12 +290,13 @@ class Order(models.Model):
     payment_id = models.CharField(max_length=250, null=True)
     order_status = (
         (1, "Pending"),
-        (2, "Dispatched"),
-        (3, "Out for delivery"),
-        (4, "Delivered"),
-        (5, "Cancel"),
-        (6, "Return"),
-        (7, "Not Returnable"),
+        (2, "Order Placed"),
+        (3, "Dispatched"),
+        (4, "Out for delivery"),
+        (5, "Delivered"),
+        (6, "Cancel"),
+        (7, "Return"),
+        (8, "Not Returnable"),
     )
     status = models.IntegerField(choices=order_status, default=1)
     payment_status = (

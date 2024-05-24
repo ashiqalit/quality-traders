@@ -58,17 +58,21 @@
                                                                 <a href="{% url 'orderview' order.tracking_no %}"
                                                                 class="btn btn-default">View</a>
                                                                 
-                                                                {% if order.status < 4 %}
+                                                                {% if order.status > 1 and order.status < 4 %}
                                                                 <button class="order_cancel btn btn-danger"
                                                                 pid="{{order.id}}">Cancel</button>
                                                                 
-                                                                {% elif order.status == 4 %}
+                                                                {% elif order.status == 5 %}
                                                                 <button class="return_order btn btn-primry"
                                                                 pid="{{order.id}}">Return</button>
                                                                 
-                                                                {% elif order.status == 5 or order.status == 6  or order.status == 7%}
+                                                                {% elif order.status == 6 or order.status == 7%}
                                                                 <button class="btn btn-default cancel_return"
                                                                 >---</button>
+
+                                                                {% elif order.status == 8 %}
+                                                                <button class="btn btn-default return_order"
+                                                                pid="{{order.id}}">Return request rejected</button>
                                                                 {% endif %}
                                                             </td>
                                                         </tr>

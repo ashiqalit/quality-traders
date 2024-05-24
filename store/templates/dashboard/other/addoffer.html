@@ -1,0 +1,92 @@
+{% extends "dashboard/layouts/main-admin.html" %}
+{% block content %}
+{% load static %}
+<div class="page-wrapper">
+    <div class="content">
+        <div class="page-header">
+            <div class="page-title">
+                <h4>Offer ADD</h4>
+                <h6>Create new Offer</h6>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <form action="{% url 'create_offer' %}" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                {{form.name.label}}
+                                {{form.name}}
+                                {% if form.name.errors %}
+                                    <div class="text-danger">
+                                        {{ form.name.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                {{form.valid_from.label}}
+                                {{form.valid_from}}
+                                {% if form.valid_from.errors %}
+                                    <div class="text-danger">
+                                        {{ form.valid_from.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                {{form.valid_to.label}}
+                                {{form.valid_to}}
+                                {% if form.valid_to.errors %}
+                                    <div class="text-danger">
+                                        {{ form.valid_to.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-10">
+                            <div class="form-group">
+                                {{form.discount.label}}
+                                {{form.discount}}
+                                {% if form.discount.errors %}
+                                    <div class="text-danger">
+                                        {{ form.discount.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-lg-2">
+                            <div class="form-group">
+                                {{form.is_active.label}}
+                                {{form.is_active}}
+                                {% if form.active.errors %}
+                                    <div class="text-danger">
+                                        {{ form.active.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-lg-12">
+                            <button type="submit" class="btn btn-submit me-2">Submit</button>
+                            <a href="{% url 'read_offers' %}" class="btn btn-cancel">Cancel</a>
+                        </div>
+                        <p style="color: red;">
+
+                            {% for message in messages %}
+                            {{message}}
+                            {% endfor %}
+                        </p>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock content %}

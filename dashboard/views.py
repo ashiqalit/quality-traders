@@ -31,6 +31,7 @@ from store.models import (
     WalletTransaction,
     Coupon,
     Product,
+    Offer,
 )
 
 from .filters import (
@@ -40,6 +41,7 @@ from .filters import (
     SubCategoryFilter,
     BrandFilter,
     CouponFilter,
+    OfferFilter,
 )
 from .forms import (
     CategoryForm,
@@ -48,6 +50,7 @@ from .forms import (
     BrandForm,
     OrderForm,
     CouponForm,
+    OfferForm,
 )
 
 
@@ -225,13 +228,10 @@ def create_categories(request):
         form = CategoryForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect("create_category")
-        else:
-            messages.info(request, "Form invalid")
-            return redirect("create_category")
+            return redirect("read_category")
     else:
         form = CategoryForm()
-        return render(request, "dashboard/other/addcategory.html", {"form": form})
+    return render(request, "dashboard/other/addcategory.html", {"form": form})
 
 
 @user_passes_test(superuser_check)
@@ -244,12 +244,13 @@ def update_category(request, pk):
             form.save()
             return redirect("read_categories")
     else:
-        context = {
-            "user": category,
-            "form": form,
-            "pk": category.pk,
-        }
-        return render(request, "dashboard/other/editcategory.html", context)
+        form = CategoryForm(instance=category)
+    context = {
+        "user": category,
+        "form": form,
+        "pk": category.pk,
+    }
+    return render(request, "dashboard/other/editcategory.html", context)
 
 
 @user_passes_test(superuser_check)
@@ -280,10 +281,8 @@ def create_coupon(request):
         if form.is_valid():
             form.save()
             return redirect("read_coupons")
-        else:
-            messages.info(request, "Form invalid")
-            return redirect("create_coupon")
-    form = CouponForm()
+    else:
+        form = CouponForm()
     return render(request, "dashboard/other/addcoupon.html", {"form": form})
 
 
@@ -310,10 +309,50 @@ def drop_coupon(request):
     return JsonResponse({"success": False})
 
 
+# Offers...................................................................................
+@user_passes_test(superuser_check)
+def list_offers(request):
+    offers = Offer.objects.all().order_by('-name')
+    myfilter = OfferFilter(request.GET, queryset=offers)
+    filtered_offers = myfilter.qs
+    context = {"all_offers": filtered_offers, "myfilter": myfilter}
+    return render(request, "dashboard/other/offerlist.html", context)
+
+@user_passes_test(superuser_check)
+def create_offer(request):
+    if request.method == "POST":
+        form = OfferForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect("read_offers")
+    else:
+        form = OfferForm()
+    return render(request, "dashboard/other/addoffer.html", {"form": form})
+
+@user_passes_test(superuser_check)
+def update_offer(request, pk):
+    offer = Offer.objects.get(id=pk)
+    form = OfferForm(instance=offer)
+    if request.method == "POST":
+        form = OfferForm(request.POST, instance=offer)
+        if form.is_valid():
+            form.save()
+            return redirect("read_offers")
+    context = {"form": form, "pk": offer.pk}
+    return render(request, "dashboard/other/editoffer.html", context)
+
+@user_passes_test(superuser_check)
+def drop_offer(request):
+    if request.method == "POST":
+        offer_id = request.POST.get("offerId")
+        offer = Offer.objects.get(id=offer_id)
+        offer.delete()
+        return JsonResponse({"success": True})
+    return JsonResponse({"success": False})
 # products.................................................................................
 @user_passes_test(superuser_check)
 def list_products(request):
-    products = Product.objects.all()
+    products = Product.objects.all().order_by("name")
     myFilter = ProductFilter(request.GET, queryset=products)
     filterd_products = myFilter.qs
     discounted_total = 0
@@ -336,28 +375,49 @@ def create_products(request):
         if form.is_valid():
             form.save()
             return redirect("read_products")
-        else:
-            messages.info(request, "Form invalid")
-            return redirect("create_product")
-
-    form = ProductForm()
+    else:
+        form = ProductForm()
     return render(request, "dashboard/other/addproduct.html", {"form": form})
 
 
 @user_passes_test(superuser_check)
 def edit_product(request, pk):
     product = Product.objects.get(id=pk)
+    default_image_path = "ecommerce/p-img/default-product-image.jpg"
+
     form = ProductForm(instance=product)
     if request.method == "POST":
-        form = ProductForm(request.POST, instance=product)
+        form = ProductForm(request.POST, request.FILES, instance=product)
         if form.is_valid():
             form.save()
             return redirect("read_products")
+    else:
+        form = ProductForm(instance=product)
     context = {
         "form": form,
+        "product": product,
         "pk": product.pk,
+        "default_image_path": default_image_path,
     }
     return render(request, "dashboard/other/editproduct.html", context)
+
+
+# Delete product image
+@user_passes_test(superuser_check)
+def delete_product_image(request, pk):
+    if request.method == "POST":
+        product = Product.objects.get(id=pk)
+        if product.image:
+            product.image.delete()
+            product.image = "ecommerce/p-img/default-product-image.jpg"
+            product.save()
+            return JsonResponse({"success": True})
+        else:
+            return JsonResponse(
+                {"success": False, "error": "No image found for product"}
+            )
+    else:
+        return JsonResponse({"success": False, "error": "Invalid request method"})
 
 
 @user_passes_test(superuser_check)
@@ -388,12 +448,9 @@ def create_subcategories(request):
         if form.is_valid():
             form.save()
             return redirect("create_subcategory")
-        else:
-            messages.info(request, "Form invalid")
-            return redirect("create_subcategory")
     else:
         form = SubCategoryForm()
-        return render(request, "dashboard/other/subaddcategory.html", {"form": form})
+    return render(request, "dashboard/other/subaddcategory.html", {"form": form})
 
 
 @user_passes_test(superuser_check)
@@ -406,12 +463,13 @@ def update_subcategory(request, pk):
             form.save()
             return redirect("read_subcategories")
     else:
-        context = {
-            "user": subcategory,
-            "form": form,
-            "pk": subcategory.pk,
-        }
-        return render(request, "dashboard/other/editsubcategory.html", context)
+        form = SubCategoryForm(instance=subcategory)
+    context = {
+        "user": subcategory,
+        "form": form,
+        "pk": subcategory.pk,
+    }
+    return render(request, "dashboard/other/editsubcategory.html", context)
 
 
 @user_passes_test(superuser_check)
@@ -442,31 +500,48 @@ def create_brands(request):
         if form.is_valid():
             form.save()
             return redirect("read_brands")
-        else:
-            messages.info(request, "Form invalid")
-            return redirect("create_brand")
     else:
         form = BrandForm()
-        return render(request, "dashboard/other/addbrand.html", {"form": form})
+    return render(request, "dashboard/other/addbrand.html", {"form": form})
 
 
 @user_passes_test(superuser_check)
 def update_brand(request, pk):
     brand = Brand.objects.get(id=pk)
+    default_image_path = "ecommerce/p-img/default-product-image.jpg"
+    
     form = BrandForm(instance=brand)
     if request.method == "POST":
-        form = BrandForm(request.POST, instance=brand)
+        form = BrandForm(request.POST, request.FILES,instance=brand)
         if form.is_valid():
             form.save()
             return redirect("read_brands")
     else:
-        context = {
-            "user": brand,
-            "form": form,
-            "pk": brand.pk,
-        }
-        return render(request, "dashboard/other/editbrand.html", context)
+        form = BrandForm(instance=brand)
+    context = {
+        "brand": brand,
+        "form": form,
+        "pk": brand.pk,
+        "default_image_path": default_image_path,
+    }
+    return render(request, "dashboard/other/editbrand.html", context)
 
+# Delete brand image
+@user_passes_test(superuser_check)
+def delete_brand_image(request, pk):
+    if request.method == "POST":
+        brand = Brand.objects.get(id=pk)
+        if brand.image:
+            brand.image.delete()
+            brand.image = "ecommerce/p-img/default-product-image.jpg"
+            brand.save()
+            return JsonResponse({"success": True})
+        else:
+            return JsonResponse(
+                {"success": False, "error": "No image found for product"}
+            )
+    else:
+        return JsonResponse({"success": False, "error": "Invalid request method"})
 
 @user_passes_test(superuser_check)
 def drop_brand(request):
@@ -604,24 +679,48 @@ def edit_order(request, pk):
 
 @user_passes_test(superuser_check)
 def cancel_order(request):
-    if request.method == "POST":
-        order_id = request.POST.get("order_id")
-        order = get_object_or_404(Order, id=order_id)
-        # Start transaction to ensure atomicity
-        with transaction.atomic():
-            # Change order status to 'Cancel'
-            order.status = 5
-            order.save()
+    if request.method == "GET":
+        try:
+            order_id = request.GET["order_id"]
+            order = get_object_or_404(Order, id=order_id)
+            # Start transaction to ensure atomicity
+            with transaction.atomic():
+                # Change order status to 'Cancel'
+                order.status = 6
+                order.save()
 
-            # Increment product quantities
-            order_items = order.orderitem_set.all()
-            for order_item in order_items:
-                product = order_item.product
-                product.quantity += order_item.quantity
-                product.save()
+                # Increment product quantities
+                order_items = order.orderitem_set.all()
+                for order_item in order_items:
+                    product = order_item.product
+                    product.quantity += order_item.quantity
+                    product.save()
 
-        return JsonResponse({"success": True})
-    return JsonResponse({"success": False})
+                try:
+                    wallet = Wallet.objects.get(user=request.user)
+                except:
+                    wallet = Wallet.objects.create(user=request.user)
+                # Set the amount based on payment mode
+                # if order.payment_mode == 'Razorpay':
+                #     amount = int(order.grand_total)
+                # else:
+                #     amount = order.grand_total
+                if order.payment_mode != "COD":
+                    wallet_transaction = WalletTransaction.objects.create(
+                        wallet=wallet,
+                        order=order,
+                        amount=order.grand_total,
+                        status="Order cancel amount credited",
+                    )
+                    wallet_transaction.save()
+
+            return JsonResponse(
+                {"message": "Order Cancelled", "order": order.serialize()}
+            )
+        except Order.DoesNotExist:
+            return JsonResponse({"error": "Order does not exists"}, status=404)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=505)
 
 
 @user_passes_test(superuser_check)
@@ -637,7 +736,7 @@ def return_requests_list(request):
 def approve_return_request(request, return_request_id):
     return_request = ReturnRequest.objects.get(id=return_request_id)
     return_request.status = 2
-    return_request.order.status = 6
+    return_request.order.status = 7
     return_request.order.save()
     return_request.save()
 
@@ -670,7 +769,8 @@ def reject_return_request(request, return_request_id):
     if request.method == "POST":
         return_request = ReturnRequest.objects.get(id=return_request_id)
         return_request.status = 3
-        return_request.order.status = 7
+        return_request.order.status = 8
+        return_request.order.save()
         rejection_message = request.POST.get("rejection_message")
         return_request.rejection_message = rejection_message
         return_request.save()

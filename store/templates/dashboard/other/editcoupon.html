@@ -19,36 +19,66 @@
                             <div class="form-group">
                                 {{form.coupon_code.label}}
                                 {{form.coupon_code}}
+                                {% if form.coupon_code.errors %}
+                                    <div class="text-danger">
+                                        {{ form.coupon_code.errors }}
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="col-lg-4">
                             <div class="form-group">
                                 {{form.type.label}}
                                 {{form.type}}
+                                {% if form.type.errors %}
+                                    <div class="text-danger">
+                                        {{ form.type.errors }}
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="col-lg-4">
                             <div class="form-group">
                                 {{form.discount.label}}
                                 {{form.discount}}
+                                {% if form.discount.errors %}
+                                    <div class="text-danger">
+                                        {{ form.discount.errors }}
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="col-lg-4">
                             <div class="form-group">
                                 {{form.valid_from.label}}
                                 {{form.valid_from}}
+                                {% if form.valid_from.errors %}
+                                    <div class="text-danger">
+                                        {{ form.valid_from.errors }}
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="col-lg-4">
                             <div class="form-group">
                                 {{form.valid_to.label}}
                                 {{form.valid_to}}
+                                {% if form.valid_to.errors %}
+                                    <div class="text-danger">
+                                        {{ form.valid_to.errors }}
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="col-lg-4">
                             <div class="form-group">
                                 {{form.active.label}}
                                 {{form.active}}
+                                {% if form.active.errors %}
+                                    <div class="text-danger">
+                                        {{ form.active.errors }}
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
                         

@@ -1,3 +1,4 @@
+// Create order with Razorpay
 $('.pay_with_razorpay').click(function (e) {
     e.preventDefault();
     var csrftoken = $('input[name=csrfmiddlewaretoken]').val();
@@ -84,10 +85,11 @@ $('.pay_with_razorpay').click(function (e) {
                                 }
                             })
                             .fail(function (jqXHR, textStatus, errorThrown) {
-                                console.error('An error occurred while processing the payment.', errorThrown);
+                                console.error('An error occurred while processing the payment.', jqXHR);
                                 Swal.fire({
                                     icon: "error",
-                                    description: "There was an issue processing your payment. Please try again.",
+                                    title: "Payment Failed",
+                                    text: "There was an issue processing your payment. Please try again.",
                                     timer: 1500
                                 })
                             });
@@ -98,10 +100,11 @@ $('.pay_with_razorpay').click(function (e) {
 
             })
             .fail(function (jqXHR, textStatus, errorThrown) {
-                console.error('Error creating order:', errorThrown);
+                console.error('Error creating order:', jqXHR);
                 Swal.fire({
                     icon: "error",
-                    description: "There was an issue processing your payment. Please try again.",
+                    title: "Order creation Failed",
+                    text: jqXHR.responseJSON.error,
                     timer: 1500
                 })
             })

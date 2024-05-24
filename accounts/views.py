@@ -137,24 +137,21 @@ def profile_address(request):
             address.save()
             messages.info(request, "New address added")
             return redirect("profile_address")
-        else:
-            messages.info(request, "Enter valid input")
-            return redirect("profile_address")
     else:
         form = AddressForm()
-        addresses = Address.objects.filter(user=request.user)
-        address_count = addresses.count()
-        # Applying pagination
-        paginator = Paginator(addresses, 3)
-        page = request.GET.get("page")
-        try:
-            addresses = paginator.page(page)
-        except PageNotAnInteger:
-            addresses = paginator.page(1)
-        except EmptyPage:
-            addresses = paginator.page(paginator.num_pages)
-        context = {"form": form, "addresses": addresses, "count": address_count}
-        return render(request, "store/edit_address_profile.html", context)
+    addresses = Address.objects.filter(user=request.user)
+    address_count = addresses.count()
+    # Applying pagination
+    paginator = Paginator(addresses, 3)
+    page = request.GET.get("page")
+    try:
+        addresses = paginator.page(page)
+    except PageNotAnInteger:
+        addresses = paginator.page(1)
+    except EmptyPage:
+        addresses = paginator.page(paginator.num_pages)
+    context = {"form": form, "addresses": addresses, "count": address_count}
+    return render(request, "store/edit_address_profile.html", context)
 
 
 @login_required(login_url="login")
