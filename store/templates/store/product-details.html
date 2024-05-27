@@ -22,7 +22,7 @@
 							<!-- <p>Web ID: 1089772</p> -->
 							<!-- <img src="images/product-details/rating.png" alt="" /> -->
 							<div class="price-container">
-								{% if product.offer or product.sub_category.offer %}
+								{% if product.offer and product.offer.is_active == True or product.sub_category.offer and product.sub_category.offer.is_active == True %}
                                     <h2>₹{{product.get_discounted_price.0}}</h2>
                                     <s class="text-success">₹{{product.price}}</s>
                                 {% else %}
@@ -37,15 +37,17 @@
 								</div>
 							</div>
 							{% if product.sub_category.offer and product.offer %}
-							    {% if product.offer > product.sub_category.offer %}
-							        <p><b>Product Offer:</b> {{ product.offer }}</p>
-							    {% else %}
-							        <p><b>Category Offer:</b> {{ product.sub_category.offer }}</p>
-							    {% endif %}
-							{% elif product.offer %}
-							    <p><b>Product Offer:</b> {{ product.offer }}</p>
-							{% elif product.sub_category.offer %}
-							    <p><b>Category Offer:</b> {{ product.sub_category.offer }}</p>
+								{% if product.sub_category.offer.is_active == True and product.offer.is_active == True %}
+							    	{% if product.offer > product.sub_category.offer %}
+							    	    <p><b>Product Offer:</b> {{ product.offer }}</p>
+							    	{% else %}
+							    	    <p><b>Category Offer:</b> {{ product.sub_category.offer }}</p>
+							    	{% endif %}
+									{% elif product.offer %}
+									<p><b>Product Offer:</b> {{ product.offer }}</p>
+									{% elif product.sub_category.offer %}
+									<p><b>Category Offer:</b> {{ product.sub_category.offer }}</p>
+								{% endif %}
 							{% endif %}
 													
 							<p><b>Availability:</b> {{product.availability}}</p>

@@ -100,7 +100,8 @@
                                 <th>Offer(Percentage)</th>
                                 <!-- <th>Description</th> -->
                                 <!-- <th>Created By</th> -->
-                                <th>Action</th>
+                                <th>Edit</th>
+                                <th>Status</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -127,9 +128,13 @@
                                     <a class="me-3" href="{% url 'edit_subcategory' subcategory.id %}">
                                         <img src="{% static 'assets/img/icons/edit.svg' %}" alt="img">
                                     </a>
-                                    <a class="me-3 confirm-text-subcategory" href="javascript:void(0);" data-subcategory-id="{{ subcategory.id }}">
-                                        <img src="{% static 'assets/img/icons/delete.svg' %}" alt="img">
-                                    </a>
+                                </td>
+                                <td>
+                                    <div class="status-toggle d-flex justify-content-between align-items-center">
+                                        <input type="checkbox" id="{{subcategory.id}}" class="check" {% if subcategory.is_active %}
+                                            checked {% endif %}>
+                                        <label for="{{subcategory.id}}" class="checktoggle">checkbox</label>
+                                    </div>
                                 </td>
                             </tr>   
                             {% endfor %}
@@ -146,5 +151,32 @@
 <script>
     var deleteUrl = "{% url 'delete_subcategory' %}";
     const csrf_token = "{{ csrf_token }}";
+</script>
+<script>
+    $(document).ready(function () {
+        $('.check').on('change', function () {
+            var subcategoryId = $(this).attr('id');
+            var ischecked = $(this).prop('checked');
+            var data = {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'subcategoryId': subcategoryId,
+                'ischecked': ischecked,
+            }
+            $.ajax({
+                url: 'delete_subcategory/',
+                method: 'POST',
+                data: data,
+                dataType: 'json',
+                success: function (data) {
+                    if (data.success) {
+                        alert(data.message);
+                    }
+                },
+                error: function (data) {
+                    alert('Error: ' + data.responseJSON.message);
+                }
+            });
+        });
+    });
 </script>
 {% endblock script %}

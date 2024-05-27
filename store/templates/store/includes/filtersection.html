@@ -17,13 +17,15 @@
                     <div class="panel-body">
                         <div class="btn-group" data-toggle="buttons">
                                 {% for subcat in cat.sub_category_set.all %}
-                                    <div class="filter-checkbox">
-                                        <label class="btn btn-default" for="sub_category_checkbox_{{ subcat.id  }}">
-                                            <input type="checkbox" class="filter-checkbox-input sr-only" data-filter="sub_category"
-                                                name="checkbox" id="sub_category_checkbox_{{ subcat.id }}" value="{{ subcat.id }}">
-                                            <span>{{ subcat.name }}</span>
-                                        </label>
-                                    </div>
+                                    {% if subcat.is_active %}
+                                        <div class="filter-checkbox">
+                                            <label class="btn btn-default" for="sub_category_checkbox_{{ subcat.id  }}">
+                                                <input type="checkbox" class="filter-checkbox-input sr-only" data-filter="sub_category"
+                                                    name="checkbox" id="sub_category_checkbox_{{ subcat.id }}" value="{{ subcat.id }}">
+                                                <span>{{ subcat.name }}</span>
+                                            </label>
+                                        </div>
+                                    {% endif %}
                                 {% endfor %}
                         </div>
                     </div>

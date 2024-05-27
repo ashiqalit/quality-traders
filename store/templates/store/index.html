@@ -48,7 +48,7 @@
                                             <input type="hidden" value="{{ prod.id }}" class="prod_id" name="product_id">
                                             <img src="{{prod.image.url}}" alt="" height="300px" width="auto" />
                                         
-                                            {% if prod.offer or prod.sub_category.offer %}
+                                            {% if prod.offer and prod.offer.is_active == True or prod.sub_category.offer and prod.sub_category.offer.is_active == True %}
                                             <h2>₹{{prod.get_discounted_price.0}}</h2>
                                             <s class="text-success">₹{{prod.price}}</s>
                                             {% else %}
@@ -62,11 +62,11 @@
                                         </div>
                                         <div class="product-overlay">
                                             <div class="overlay-content">
-                                                {% if prod.offer or prod.sub_category.offer %}
-                                                <h2>₹{{prod.get_discounted_price.0}}</h2>
-                                                <s class="text-success">₹{{prod.price}}</s>
-                                                {% else %}
-                                                <h2>₹{{prod.price}}</h2>
+                                                {% if prod.offer and prod.offer.is_active == True or prod.sub_category.offer and prod.sub_category.offer.is_active == True %}
+                                                    <h2>₹{{prod.get_discounted_price.0}}</h2>
+                                                    <s class="text-success">₹{{prod.price}}</s>
+                                                    {% else %}
+                                                    <h2>₹{{prod.price}}</h2>
                                                 {% endif %}
                                             
                                                 <p>{{prod.name}}</p>
