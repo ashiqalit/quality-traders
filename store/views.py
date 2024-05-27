@@ -60,10 +60,15 @@ razorpay_client = razorpay.Client(
 
 @login_required(login_url="login")
 def home(request):
-    category = Category.objects.all()
-    brands = Brand.objects.all()
+    category = Category.objects.filter(is_active=True)
+    brands = Brand.objects.filter(is_active=True)
 
-    products = Product.objects.all()
+    products = Product.objects.filter(
+        is_active=True,
+        category__is_active=True,
+        sub_category__is_active=True,
+        brand__is_active=True
+        ).order_by("name")
     banner_images = Banner.objects.all()
 
     paginator = Paginator(products, 6)  # show 6 products per page
@@ -238,9 +243,13 @@ def show_cart(request):
             ).first()
             if coupon:
                 for cart_coupon in cart.coupons.all():
-                    if cart_coupon == coupon:
-                        messages.warning(request, "Coupon already activated")
-                        print("Coupon already activated")
+                    if cart_coupon.active == True:
+                        if cart_coupon == coupon:
+                            messages.warning(request, "Coupon already activated")
+                            print("Coupon already activated")
+                            return redirect("showcart")
+                    else:
+                        messages.warning(request, "Coupon is inactive")
                         return redirect("showcart")
                 cart.coupons.add(coupon)
                 messages.success(request, "Coupon Activated")
@@ -785,6 +794,7 @@ def create_order(request):
                         }
                         orderData = client.order.create(data=payment_data)
                         order.payment_id = orderData["id"]
+                        order.status = 2
                         order.save()
                         return JsonResponse(
                             {

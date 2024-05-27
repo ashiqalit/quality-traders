@@ -1,6 +1,7 @@
 from django import forms
 from django.forms import ModelForm
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 from store.models import Category, Product, Sub_category, Brand, Order, Coupon, Offer
 
 # from django.contrib.auth.hashers import make_password
@@ -97,36 +98,61 @@ class CouponForm(ModelForm):
         model = Coupon
         fields = ("coupon_code", "type", "discount", "valid_from", "valid_to", "active")
         widgets = {
-            "valid_from": forms.DateInput(attrs={"type": "date"}),
-            "valid_to": forms.DateInput(attrs={"type": "date"}),
+            "valid_from": forms.DateTimeInput(attrs={"type": "datetime-local"}),
+            "valid_to": forms.DateTimeInput(attrs={"type": "datetime-local"}),
         }
+       
+    def __init__(self, *args, **kwargs):
+        super(CouponForm, self).__init__(*args, **kwargs)
+        # format datetime fields to the right format
+        self.fields['valid_from'].input_formats = ['%Y-%m-%dT%H:%M']
+        self.fields['valid_to'].input_formats = ['%Y-%m-%dT%H:%M']
 
     def clean_discount(self):
         discount = self.cleaned_data.get('discount')
+        type = self.cleaned_data.get('type')
         if discount and discount < 0:
             raise ValidationError('Negative discount not allowed')
+        if discount and type == 'Percentage' and discount > 100:
+            raise ValidationError('Discount percent cannot be greater than 100')
         return discount
 
     def clean(self):
         cleaned_data = super().clean()
         valid_from = self.cleaned_data.get('valid_from')
         valid_to = self.cleaned_data.get('valid_to')
-        
-        if valid_from and valid_to and valid_from > valid_to:
-            raise ValidationError({
-                'valid_from': 'From date cannot be greater than to date',
-                'valid_to': 'To date cannot be less than from date',
-            })
-        return cleaned_data
+        today = timezone.now()
+
+        if valid_from and valid_to:
+            if valid_from > valid_to:
+                raise ValidationError({
+                    'valid_from': 'From date cannot be greater than to date',
+                    'valid_to': 'To date cannot be less than from date',
+                })
+            if valid_to < today:
+                raise ValidationError({
+                    'valid_to':'To date cannot be less than today'
+                })
+            if valid_from == valid_to:
+                raise ValidationError({
+                    'valid_to':'Valid From and Valid to cannot be equal',
+                    'valid_from':'Valid From and Valid to cannot be equal'
+                })
 
 class OfferForm(ModelForm):
     class Meta:
         model = Offer
         fields = ("name", "valid_from", "valid_to", "discount", "is_active")
         widgets = {
-            "valid_from": forms.DateInput(attrs={"type": "date"}),
-            "valid_to": forms.DateInput(attrs={"type": "date"}),
+            "valid_from": forms.DateTimeInput(attrs={"type": "datetime-local"}),
+            "valid_to": forms.DateTimeInput(attrs={"type": "datetime-local"}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super(OfferForm, self).__init__(*args, **kwargs)
+        # format datetime fields to the right format
+        self.fields['valid_from'].input_formats = ['%Y-%m-%dT%H:%M']
+        self.fields['valid_to'].input_formats = ['%Y-%m-%dT%H:%M']
 
     def clean_name(self):
         name = self.cleaned_data.get("name").strip()
@@ -138,16 +164,28 @@ class OfferForm(ModelForm):
         discount = self.cleaned_data.get('discount')
         if discount and discount < 0:
             raise ValidationError('Negative discount not allowed')
+        if discount and discount > 100:
+            raise ValidationError('Discount not allowed more than 100%')
         return discount
 
     def clean(self):
         cleaned_data = super().clean()
         valid_from = self.cleaned_data.get('valid_from')
         valid_to = self.cleaned_data.get('valid_to')
-        
-        if valid_from and valid_to and valid_from > valid_to:
-            raise ValidationError({
-                'valid_from': 'From date cannot be greater than to date',
-                'valid_to': 'To date cannot be less than from date',
-            })
-        return cleaned_data
+        today = timezone.now()
+
+        if valid_from and valid_to:
+            if valid_from > valid_to:
+                raise ValidationError({
+                    'valid_from': 'From date cannot be greater than to date',
+                    'valid_to': 'To date cannot be less than from date',
+                })
+            if valid_to < today:
+                raise ValidationError({
+                    'valid_to':'To date cannot be less than today'
+                })
+            if valid_from == valid_to:
+                raise ValidationError({
+                    'valid_to':'Valid From and Valid to cannot be equal',
+                    'valid_from':'Valid From and Valid to cannot be equal'
+                })

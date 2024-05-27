@@ -5,8 +5,8 @@
     <div class="content">
         <div class="page-header">
             <div class="page-title">
-                <h4>Brand List</h4>
-                <h6>Manage your Brand</h6>
+                <h4>Coupon List</h4>
+                <h6>Manage your Coupon</h6>
             </div>
             <div class="page-btn">
                 <a href="{% url 'create_coupon' %}" class="btn btn-added"><img src="{% static 'assets/img/icons/plus.svg' %}" class="me-2"
@@ -86,7 +86,8 @@
                                 <th>Valid From</th>
                                 <th>Valid To</th>
                                 <th>Active Status</th>
-                                <th>Actions</th>
+                                <th>Edit</th>
+                                <th>Toggle Status</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -110,14 +111,18 @@
                                 <td>{{coupon.discount}}</td>
                                 <td>{{coupon.valid_from}}</td>
                                 <td>{{coupon.valid_to}}</td>
-                                <td>{{coupon.active}}</td>
+                                <td class="active_status" id="active_status_{{ coupon.id }}">{{coupon.active}}</td>
                                 <td>
                                     <a class="me-3" href="{% url 'edit_coupon' coupon.id %}">
                                         <img src="{% static 'assets/img/icons/edit.svg' %}" alt="img">
                                     </a>
-                                    <a class="me-3 confirm-text-coupon" href="javascript:void(0);" data-coupon-id="{{ coupon.id }}">
-                                        <img src="{% static 'assets/img/icons/delete.svg' %}" alt="img">
-                                    </a>
+                                </td>
+                                <td>
+                                    <div class="status-toggle d-flex justify-content-between align-items-center">
+                                        <input type="checkbox" id="{{coupon.id}}" class="check" {% if coupon.active %}
+                                            checked {% endif %}>
+                                        <label for="{{coupon.id}}" class="checktoggle">checkbox</label>
+                                    </div>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -134,5 +139,34 @@
 <script>
     var deleteUrl = "{% url 'delete_coupon' %}";
     const csrf_token = "{{ csrf_token }}";
+</script>
+<script>
+    $(document).ready(function () {
+        $('.check').on('change', function () {
+            var couponId = $(this).attr('id');
+            var ischecked = $(this).prop('checked');
+            var statusCell = $('#active_status_' + couponId)
+            var data = {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'couponId': couponId,
+                'ischecked': ischecked,
+            }
+            $.ajax({
+                url: 'delete_coupon/',
+                method: 'POST',
+                data: data,
+                dataType: 'json',
+                success: function (data) {
+                    statusCell.text(ischecked ? 'True' : 'False');
+                    if (data.success) {
+                        alert(data.message);
+                    }
+                },
+                error: function (data) {
+                    alert('Error: ' + data.responseJSON.message);
+                }
+            });
+        });
+    });
 </script>
 {% endblock script %}

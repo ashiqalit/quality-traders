@@ -85,7 +85,8 @@
                                 <th>Valid To</th>
                                 <th>Discount</th>
                                 <th>Active Status</th>
-                                <th>Actions</th>
+                                <th>Edit</th>
+                                <th>Toggle Status</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -108,14 +109,18 @@
                                 <td>{{offer.valid_from}}</td>
                                 <td>{{offer.valid_to}}</td>
                                 <td>{{offer.discount}}</td>
-                                <td>{{offer.is_active}}</td>
+                                <td id="active_status_{{ offer.id }}">{{offer.is_active}}</td>
                                 <td>
                                     <a class="me-3" href="{% url 'edit_offer' offer.id %}">
                                         <img src="{% static 'assets/img/icons/edit.svg' %}" alt="img">
                                     </a>
-                                    <a class="me-3 confirm-text-offer" href="javascript:void(0);" data-offer-id="{{ offer.id }}">
-                                        <img src="{% static 'assets/img/icons/delete.svg' %}" alt="img">
-                                    </a>
+                                </td>
+                                <td>
+                                    <div class="status-toggle d-flex justify-content-between align-items-center">
+                                        <input type="checkbox" id="{{offer.id}}" class="check" {% if offer.is_active %}
+                                            checked {% endif %}>
+                                        <label for="{{offer.id}}" class="checktoggle">checkbox</label>
+                                    </div>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -132,5 +137,34 @@
 <script>
     var deleteUrl = "{% url 'delete_offer' %}";
     const csrf_token = "{{ csrf_token }}";
+</script>
+<script>
+    $(document).ready(function () {
+        $('.check').on('change', function () {
+            var offerId = $(this).attr('id');
+            var ischecked = $(this).prop('checked');
+            var statusCell = $('#active_status_' + offerId)
+            var data = {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'offerId': offerId,
+                'ischecked': ischecked,
+            }
+            $.ajax({
+                url: 'delete_offer/',
+                method: 'POST',
+                data: data,
+                dataType: 'json',
+                success: function (data) {
+                    statusCell.text(ischecked ? 'True' : 'False');
+                    if (data.success) {
+                        alert(data.message);
+                    }
+                },
+                error: function (data) {
+                    alert('Error: ' + data.responseJSON.message);
+                }
+            });
+        });
+    });
 </script>
 {% endblock script %}

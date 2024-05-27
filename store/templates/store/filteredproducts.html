@@ -1,51 +1,77 @@
 
-
+                <div class="row">
                     {% for prod in products %}
-                    <div class="col-sm-4">
-                        <div class="product-image-wrapper">
-                            <div class="single-products product_data">
-                                <div class="productinfo text-center">
-                                    {% csrf_token %}
-                                    <input type="hidden" value="{{ prod.id }}" class="prod_id" name="product_id">
-                                    <img src="{{prod.image.url}}" alt="" height="300px" width="auto" />
-
-                                    {% if prod.offer or prod.sub_category.offer %}
-                                    <h2>₹{{prod.get_discounted_price.0}}</h2>
-                                    <s class="text-success">₹{{prod.price}}</s>
-                                    {% else %}
-                                    <h2>₹{{prod.price}}</h2>
-                                    {% endif %}
-
-                                    <p class="prod_name">{{prod.name}}</p>
-                                    <a href="#" data-product={{prod.id}} data-action="add"
-                                        class="btn btn-default add-to-cart"><i class="fa fa-shopping-cart"></i>Add to
-                                        cart</a>
-                                </div>
-                                <div class="product-overlay">
-                                    <div class="overlay-content">
-                                        {% if prod.offer or prod.sub_category.offer %}
-                                        <h2>₹{{prod.get_discounted_price.0}}</h2>
-                                        <s class="text-success">₹{{prod.price}}</s>
-                                        {% else %}
-                                        <h2>₹{{prod.price}}</h2>
-                                        {% endif %}
-
-                                        <p>{{prod.name}}</p>
-                                        <a href="#" data-product={{prod.id}} data-action="add"
-                                                class="btn btn-default add-to-cart"><i class="fa fa-shopping-cart"></i>Add
-                                                to cart</a>
+                        {% if prod.is_active %}
+                            <div class="col-sm-4">
+                                <div class="product-image-wrapper">
+                                    <div class="single-products product_data">
+                                        <div class="productinfo text-center">
+                                            {% csrf_token %}
+                                            <input type="hidden" value="{{ prod.id }}" class="prod_id" name="product_id">
+                                            <img src="{{prod.image.url}}" alt="" height="300px" width="auto" />
+        
+                                            {% if prod.offer and prod.offer.is_active == True or prod.sub_category.offer and prod.sub_category.offer.is_active == True %}
+                                            <h2>₹{{prod.get_discounted_price.0}}</h2>
+                                            <s class="text-success">₹{{prod.price}}</s>
+                                            {% else %}
+                                            <h2>₹{{prod.price}}</h2>
+                                            {% endif %}
+        
+                                            <p class="prod_name">{{prod.name}}</p>
+                                            <a href="#" data-product={{prod.id}} data-action="add"
+                                                class="btn btn-default add-to-cart"><i class="fa fa-shopping-cart"></i>Add to
+                                                cart</a>
+                                        </div>
+                                        <div class="product-overlay">
+                                            <div class="overlay-content">
+                                                {% if prod.offer and prod.offer.is_active == True or prod.sub_category.offer and prod.sub_category.offer.is_active == True %}
+                                                <h2>₹{{prod.get_discounted_price.0}}</h2>
+                                                <s class="text-success">₹{{prod.price}}</s>
+                                                {% else %}
+                                                <h2>₹{{prod.price}}</h2>
+                                                {% endif %}
+        
+                                                <p>{{prod.name}}</p>
+                                                <a href="#" data-product={{prod.id}} data-action="add"
+                                                        class="btn btn-default add-to-cart"><i class="fa fa-shopping-cart"></i>Add
+                                                        to cart</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="choose">
+                                        <ul class="nav nav-pills nav-justified">
+                                            <li><a href="" data-product={{prod.id}} class="add-to-wishlist"><i
+                                                        class="fa fa-heart"></i>Add to wishlist</a></li>
+                                            <li><a href="{% url 'product_detail' prod.id  %}"><i
+                                                        class="fa fa-plus-square"></i>View Product</a></li>
+                                        </ul>
                                     </div>
                                 </div>
                             </div>
-                            <div class="choose">
-                                <ul class="nav nav-pills nav-justified">
-                                    <li><a href="" data-product={{prod.id}} class="add-to-wishlist"><i
-                                                class="fa fa-heart"></i>Add to wishlist</a></li>
-                                    <li><a href="{% url 'product_detail' prod.id  %}"><i
-                                                class="fa fa-plus-square"></i>View Product</a></li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
+                            {% if forloop.counter|divisibleby:3 and not forloop.last %}
+                            </div><div class="row">
+                            {% endif %}
+                        {% endif %}
                     {% endfor %}
-  
+                </div>
+                <div class="text-center">
+                    <nav aria-label="Page Navigation">
+                        <ul class="pagination">
+                            {% if products.has_previous %}
+                                <li><a href="?page=1">First</a></li> 
+                                <li><a href="?page={{ products.previous_page_number }}">Previous</a></li>
+                            {% endif %}
+                            {% for num in products.paginator.page_range %}
+                                    {% if products.number == num %}
+                                        <li class="active"><a href="?page={{ num }}">{{ num }}</a></li>
+                                    {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
+                                        <li><a href="?page={{ num }}">{{ num }}</a></li>
+                                    {% endif %}
+                            {% endfor %}
+                            {% if products.has_next %}
+                            <li><a href="?page={{ products.next_page_number }}">Next</a></li>
+                            <li><a href="?page={{ products.paginator.num_pages }}">Last</a></li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>

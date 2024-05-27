@@ -99,7 +99,8 @@
                                 <!-- <th>Category Code</th> -->
                                 <!-- <th>Description</th> -->
                                 <!-- <th>Created By</th> -->
-                                <th>Action</th>
+                                <th>Edit</th>
+                                <th>Status</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -124,9 +125,16 @@
                                     <a class="me-3" href="{% url 'edit_category' category.id %}">
                                         <img src="{% static 'assets/img/icons/edit.svg' %}" alt="img">
                                     </a>
-                                    <a class="me-3 confirm-text" href="javascript:void(0);" data-category-id="{{ category.id }}">
+                                    <!-- <a class="me-3 confirm-text" href="javascript:void(0);" data-category-id="{{ category.id }}">
                                         <img src="{% static 'assets/img/icons/delete.svg' %}" alt="img">
-                                    </a>
+                                    </a> -->
+                                </td>
+                                <td>
+                                    <div class="status-toggle d-flex justify-content-between align-items-center">
+                                        <input type="checkbox" id="{{category.id}}" class="check" {% if category.is_active %}
+                                            checked {% endif %}>
+                                        <label for="{{category.id}}" class="checktoggle">checkbox</label>
+                                    </div>
                                 </td>
                             </tr>   
                             {% endfor %}
@@ -143,5 +151,32 @@
 <script>
     var deleteUrl = "{% url 'delete_category' %}";
     const csrf_token = "{{ csrf_token }}";
+</script>
+<script>
+    $(document).ready(function () {
+        $('.check').on('change', function () {
+            var categoryId = $(this).attr('id');
+            var ischecked = $(this).prop('checked');
+            var data = {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'categoryId': categoryId,
+                'ischecked': ischecked,
+            }
+            $.ajax({
+                url: 'delete_category/',
+                method: 'POST',
+                data: data,
+                dataType: 'json',
+                success: function (data) {
+                    if (data.success) {
+                        alert(data.message);
+                    }
+                },
+                error: function (data) {
+                    alert('Error: ' + data.responseJSON.message);
+                }
+            });
+        });
+    });
 </script>
 {% endblock script %}

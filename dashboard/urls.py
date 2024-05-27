@@ -19,14 +19,14 @@ urlpatterns = [
     path("categories/", views.list_categories, name="read_categories"),
     path("create_category/", views.create_categories, name="create_category"),
     path("edit_category/<int:pk>/", views.update_category, name="edit_category"),
-    path("delete_category/", views.drop_category, name="delete_category"),
+    path("categories/delete_category/", views.drop_category, name="delete_category"),
     
     # products
     path("products/", views.list_products, name="read_products"),
     path("create_product/", views.create_products, name="create_product"),
     path("edit_product/<str:pk>", views.edit_product, name="edit_product"),
     path("delete_product_image/<str:pk>", views.delete_product_image, name='delete_product_image'),
-    path("delete_product/", views.drop_product, name="delete_product"),
+    path("products/delete_product/", views.drop_product, name="delete_product"),
    
     # subcategories
     path("subcategories/", views.list_subcategories, name="read_subcategories"),
@@ -34,14 +34,14 @@ urlpatterns = [
     path(
         "edit_subcategory/<int:pk>/", views.update_subcategory, name="edit_subcategory"
     ),
-    path("delete_subcategory/", views.drop_subcategory, name="delete_subcategory"),
+    path("subcategories/delete_subcategory/", views.drop_subcategory, name="delete_subcategory"),
     
     # brands
     path("brands/", views.list_brands, name="read_brands"),
     path("create_brand/", views.create_brands, name="create_brand"),
     path("edit_brand/<int:pk>/", views.update_brand, name="edit_brand"),
     path("delete_brand_image/<str:pk>", views.delete_brand_image, name='delete_brand_image'),
-    path("delete_brand/", views.drop_brand, name="delete_brand"),
+    path("brands/delete_brand/", views.drop_brand, name="delete_brand"),
     # path ('update/<int:pk>/', views.update_user, name = 'update_user'),
     # path ('delete/<int:pk>/', views.delete_user, name = 'delete_user'),
    
@@ -82,13 +82,13 @@ urlpatterns = [
     path("coupons/", views.list_coupons, name="read_coupons"),
     path("create_coupon/", views.create_coupon, name="create_coupon"),
     path("edit_coupon/<int:pk>/", views.update_coupon, name="edit_coupon"),
-    path("delete_coupon/", views.drop_coupon, name="delete_coupon"),
+    path("coupons/delete_coupon/", views.drop_coupon, name="delete_coupon"),
     
     # Offers
     path("offers/", views.list_offers, name="read_offers"),
     path("create_offer/", views.create_offer, name="create_offer"),
     path("edit_offer/<int:pk>/", views.update_offer, name="edit_offer"),
-    path("delete_offer/", views.drop_offer, name="delete_offer"),
+    path("offers/delete_offer/", views.drop_offer, name="delete_offer"),
 ]
 
 if settings.DEBUG:

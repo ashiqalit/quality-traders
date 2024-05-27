@@ -23,6 +23,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 class Category(models.Model):
     name = models.CharField(max_length=150, unique=True)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
@@ -45,6 +46,7 @@ class Sub_category(models.Model):
     name = models.CharField(max_length=150)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     offer = models.ForeignKey(Offer, on_delete=models.CASCADE, null=True, blank=True)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
@@ -55,6 +57,7 @@ class Brand(models.Model):
     image = models.ImageField(upload_to="ecommerce/brand-img", null=True, blank=True)
     description = models.TextField(null=True)
     sub_category = models.ForeignKey(Sub_category, on_delete=models.CASCADE, null=True)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
@@ -84,6 +87,7 @@ class Product(models.Model):
     offer = models.ForeignKey(Offer, on_delete=models.CASCADE, null=True, blank=True)
     total_offer = models.IntegerField(default=0)
     final_price = models.IntegerField(default=0)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
@@ -224,12 +228,6 @@ class Coupon(models.Model):
 
     def __str__(self):
         return self.coupon_code
-
-    def save(self, *args, **kwargs):
-        self.active = (
-            timezone.now() >= self.valid_from and timezone.now() <= self.valid_to
-        )
-        super().save(*args, **kwargs)
 
     @classmethod
     def get_active_coupons(cls):

@@ -228,7 +228,7 @@ def create_categories(request):
         form = CategoryForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect("read_category")
+            return redirect("read_categories")
     else:
         form = CategoryForm()
     return render(request, "dashboard/other/addcategory.html", {"form": form})
@@ -256,18 +256,26 @@ def update_category(request, pk):
 @user_passes_test(superuser_check)
 def drop_category(request):
     if request.method == "POST":
-        category_id = request.POST.get("categoryId")
-        category = Category.objects.get(id=category_id)
-        category.delete()
-        return JsonResponse({"success": True})
-        # return redirect('read_categories')
-    return JsonResponse({"success": False})
+        try:
+            category_id = request.POST.get("categoryId")
+            category = Category.objects.get(id=category_id)
+            ischecked = request.POST.get("ischecked") == "true"
+            # ischecked will be false if no value come from request
+            category.is_active = ischecked
+            category.save()
+            message = "Category activated" if ischecked else "Category Deactivated"
+            return JsonResponse({"status":"success", "message":message})
+        except Category.DoesNotExist:
+            return JsonResponse({"status":"error", "message":"Invalid user ID"})
+        except Exception as e:
+            return JsonResponse({"status":"error", "message":str(e)})
+    return JsonResponse({"status":"error","message":"Invalid request method"})
 
 
 # coupons..................................................................................
 @user_passes_test(superuser_check)
 def list_coupons(request):
-    coupons = Coupon.objects.all()
+    coupons = Coupon.objects.all().order_by('-coupon_code')
     myfilter = CouponFilter(request.GET, queryset=coupons)
     filtered_coupons = myfilter.qs
     context = {"all_coupons": filtered_coupons, "myfilter": myfilter}
@@ -302,21 +310,31 @@ def update_coupon(request, pk):
 @user_passes_test(superuser_check)
 def drop_coupon(request):
     if request.method == "POST":
-        coupon_id = request.POST.get("couponId")
-        coupon = Coupon.objects.get(id=coupon_id)
-        coupon.delete()
-        return JsonResponse({"success": True})
-    return JsonResponse({"success": False})
+        try:
+            coupon_id = request.POST.get("couponId")
+            coupon = Coupon.objects.get(id=coupon_id)
+            ischecked = request.POST.get("ischecked") == "true"
+            # ischecked will be false if no value come from request
+            coupon.active = ischecked
+            coupon.save()
+            message = "Coupon activated" if ischecked else "Coupon Deactivated"
+            return JsonResponse({"status":"success", "message":message})
+        except Coupon.DoesNotExist:
+            return JsonResponse({"status":"error", "message":"Invalid user ID"})
+        except Exception as e:
+            return JsonResponse({"status":"error", "message":str(e)})
+    return JsonResponse({"status":"error","message":"Invalid request method"})
 
 
 # Offers...................................................................................
 @user_passes_test(superuser_check)
 def list_offers(request):
-    offers = Offer.objects.all().order_by('-name')
+    offers = Offer.objects.all().order_by("-name")
     myfilter = OfferFilter(request.GET, queryset=offers)
     filtered_offers = myfilter.qs
     context = {"all_offers": filtered_offers, "myfilter": myfilter}
     return render(request, "dashboard/other/offerlist.html", context)
+
 
 @user_passes_test(superuser_check)
 def create_offer(request):
@@ -328,6 +346,7 @@ def create_offer(request):
     else:
         form = OfferForm()
     return render(request, "dashboard/other/addoffer.html", {"form": form})
+
 
 @user_passes_test(superuser_check)
 def update_offer(request, pk):
@@ -341,14 +360,25 @@ def update_offer(request, pk):
     context = {"form": form, "pk": offer.pk}
     return render(request, "dashboard/other/editoffer.html", context)
 
+
 @user_passes_test(superuser_check)
 def drop_offer(request):
     if request.method == "POST":
-        offer_id = request.POST.get("offerId")
-        offer = Offer.objects.get(id=offer_id)
-        offer.delete()
-        return JsonResponse({"success": True})
-    return JsonResponse({"success": False})
+        try:
+            offer_id = request.POST.get("offerId")
+            offer = Offer.objects.get(id=offer_id)
+            ischecked = request.POST.get("ischecked") == "true"
+            # ischecked will be false if no value come from request
+            offer.is_active = ischecked
+            offer.save()
+            message = "Offer activated" if ischecked else "Offer Deactivated"
+            return JsonResponse({"status":"success", "message":message})
+        except Offer.DoesNotExist:
+            return JsonResponse({"status":"error", "message":"Invalid user ID"})
+        except Exception as e:
+            return JsonResponse({"status":"error", "message":str(e)})
+    return JsonResponse({"status":"error","message":"Invalid request method"})
+
 # products.................................................................................
 @user_passes_test(superuser_check)
 def list_products(request):
@@ -423,18 +453,26 @@ def delete_product_image(request, pk):
 @user_passes_test(superuser_check)
 def drop_product(request):
     if request.method == "POST":
-        product_id = request.POST.get("productId")
-        product = Product.objects.get(id=product_id)
-        product.delete()
-        return JsonResponse({"success": True})
-        # return redirect('read_categories')
-    return JsonResponse({"success": False})
+        try:
+            product_id = request.POST.get("productId")
+            product = Product.objects.get(id=product_id)
+            ischecked = request.POST.get("ischecked") == "true"
+            # ischecked will be false if no value come from request
+            product.is_active = ischecked
+            product.save()
+            message = "Product activated" if ischecked else "Product Deactivated"
+            return JsonResponse({"status":"success", "message":message})
+        except Product.DoesNotExist:
+            return JsonResponse({"status":"error", "message":"Invalid user ID"})
+        except Exception as e:
+            return JsonResponse({"status":"error", "message":str(e)})
+    return JsonResponse({"status":"error","message":"Invalid request method"})
 
 
 # subcategories.............................................................
 @user_passes_test(superuser_check)
 def list_subcategories(request):
-    subcategories = Sub_category.objects.all()
+    subcategories = Sub_category.objects.all().order_by('name')
     myFilter = SubCategoryFilter(request.GET, queryset=subcategories)
     filterd_categories = myFilter.qs
     context = {"all_categories": filterd_categories, "myFilter": myFilter}
@@ -447,7 +485,7 @@ def create_subcategories(request):
         form = SubCategoryForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect("create_subcategory")
+            return redirect("read_subcategories")
     else:
         form = SubCategoryForm()
     return render(request, "dashboard/other/subaddcategory.html", {"form": form})
@@ -475,12 +513,20 @@ def update_subcategory(request, pk):
 @user_passes_test(superuser_check)
 def drop_subcategory(request):
     if request.method == "POST":
-        subcategory_id = request.POST.get("subcategoryId")
-        subcategory = Category.objects.get(id=subcategory_id)
-        subcategory.delete()
-        return JsonResponse({"success": True})
-        # return redirect('read_categories')
-    return JsonResponse({"success": False})
+        try:
+            subcategory_id = request.POST.get("subcategoryId")
+            subcategory = Sub_category.objects.get(id=subcategory_id)
+            ischecked = request.POST.get("ischecked") == "true"
+            # ischecked will be false if no value come from request
+            subcategory.is_active = ischecked
+            subcategory.save()
+            message = "Sub Category activated" if ischecked else "Sub Category Deactivated"
+            return JsonResponse({"status":"success", "message":message})
+        except Sub_category.DoesNotExist:
+            return JsonResponse({"status":"error", "message":"Invalid user ID"})
+        except Exception as e:
+            return JsonResponse({"status":"error", "message":str(e)})
+    return JsonResponse({"status":"error","message":"Invalid request method"})
 
 
 # brands.............................................................
@@ -509,10 +555,10 @@ def create_brands(request):
 def update_brand(request, pk):
     brand = Brand.objects.get(id=pk)
     default_image_path = "ecommerce/p-img/default-product-image.jpg"
-    
+
     form = BrandForm(instance=brand)
     if request.method == "POST":
-        form = BrandForm(request.POST, request.FILES,instance=brand)
+        form = BrandForm(request.POST, request.FILES, instance=brand)
         if form.is_valid():
             form.save()
             return redirect("read_brands")
@@ -525,6 +571,7 @@ def update_brand(request, pk):
         "default_image_path": default_image_path,
     }
     return render(request, "dashboard/other/editbrand.html", context)
+
 
 # Delete brand image
 @user_passes_test(superuser_check)
@@ -543,15 +590,24 @@ def delete_brand_image(request, pk):
     else:
         return JsonResponse({"success": False, "error": "Invalid request method"})
 
+
 @user_passes_test(superuser_check)
 def drop_brand(request):
     if request.method == "POST":
-        brand_id = request.POST.get("brandId")
-        brand = Brand.objects.get(id=brand_id)
-        brand.delete()
-        return JsonResponse({"success": True})
-        # return redirect('read_categories')
-    return JsonResponse({"success": False})
+        try:
+            brand_id = request.POST.get("brandId")
+            brand = Brand.objects.get(id=brand_id)
+            ischecked = request.POST.get("ischecked") == "true"
+            # ischecked will be false if no value come from request
+            brand.is_active = ischecked
+            brand.save()
+            message = "Brand activated" if ischecked else "Brand Deactivated"
+            return JsonResponse({"status":"success", "message":message})
+        except Brand.DoesNotExist:
+            return JsonResponse({"status":"error", "message":"Invalid user ID"})
+        except Exception as e:
+            return JsonResponse({"status":"error", "message":str(e)})
+    return JsonResponse({"status":"error","message":"Invalid request method"})
 
 
 # orders...........................................................................

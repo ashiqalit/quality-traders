@@ -100,11 +100,13 @@
 									{% csrf_token %}
 									<ul class="nav nav-pills">
 										{% for coupon in cart.coupons.all %}
-										<li>
-											<input type="hidden" name="coupon_id" value="{{ coupon.id }}">
-											<button href="{% url 'remove_coupon' %}" class="btn btn-success">{{ coupon.coupon_code }}</button>
-		
-										</li>
+											{% if coupon.active == True %}
+											<li>
+												<input type="hidden" name="coupon_id" value="{{ coupon.id }}">
+												<button href="{% url 'remove_coupon' %}" class="btn btn-success">{{ coupon.coupon_code }}</button>
+											
+											</li>
+											{% endif %}
 										{% endfor %}
 									</ul>
 								</form>
