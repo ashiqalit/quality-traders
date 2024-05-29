@@ -106,14 +106,14 @@ DATABASES = {
         "HOST": config("DB_HOST"),
         "PORT": config("DB_PORT", default="5432"),
     },
-    "gis_db": {
-        "ENGINE": "django.contrib.gis.db.backends.postgis",
-        "NAME": config("GIS_DB_NAME"),
-        "USER": config("GIS_DB_USER"),
-        "PASSWORD": config("GIS_DB_PASSWORD"),
-        "HOST": config("GIS_DB_HOST"),
-        "PORT": config("GIS_DB_PORT", default="5432"),
-    },
+    # "gis_db": {
+    #     "ENGINE": "django.contrib.gis.db.backends.postgis",
+    #     "NAME": config("GIS_DB_NAME"),
+    #     "USER": config("GIS_DB_USER"),
+    #     "PASSWORD": config("GIS_DB_PASSWORD"),
+    #     "HOST": config("GIS_DB_HOST"),
+    #     "PORT": config("GIS_DB_PORT", default="5432"),
+    # },
 }
 
 
