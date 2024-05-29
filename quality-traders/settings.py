@@ -163,6 +163,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 STATICFIELDS_DIRS = [os.path.join(BASE_DIR, "static")]
 STATIC_ROOT = os.path.join(BASE_DIR, "assets")
 
+<<<<<<< HEAD
 MEDIA_URL = "media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
@@ -217,3 +218,13 @@ DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 # print(AWS_DEFAULT_ACL)
 # print(AWS_S3_VERIFY)
 # print(DEFAULT_FILE_STORAGE)
+=======
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+ACCOUNT_SID='AC825395067d6cdfa7ee1843e1bee059ef'
+AUTH_TOKEN='b3caa7717709a5da32a6552948cc42b6'
+COUNTRY_CODE='+91'
+TWILIO_WHATSAPP_NUMBER='whatsapp:+14155238886'
+TWILIO_PHONE_NUMBER='+15103067746'
+>>>>>>> origin/twilio

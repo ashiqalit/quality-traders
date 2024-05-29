@@ -13,6 +13,7 @@ from django.contrib import messages
 from django.db.models import Sum
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+<<<<<<< HEAD
 from django.http import (
     JsonResponse,
     HttpResponseNotFound,
@@ -55,11 +56,15 @@ razorpay_client = razorpay.Client(
     auth=(settings.RAZOR_KEY_ID, settings.RAZOR_KEY_SECRET)
 )
 
+=======
+from django.http import HttpResponse
+>>>>>>> origin/twilio
 # Create your views here.
 
 
 @login_required(login_url="login")
 def home(request):
+<<<<<<< HEAD
     category = Category.objects.filter(is_active=True)
     brands = Brand.objects.filter(is_active=True)
 
@@ -140,6 +145,22 @@ def product_detail(request, id):
     }
     return render(request, "store/product-details.html", context)
 
+=======
+    if request.COOKIES.get('verified') and request.COOKIES.get('verified')!=None:
+        category = Category.objects.all()
+        product = Product.objects.all()
+        variant = Product_variant.objects.all()
+        context = {'category':category,
+                'product':product,
+                'variant':variant}
+        return render(request, 'store/index.html', context)
+    else:
+        return HttpResponse(" Not verified.")
+@login_required(login_url='login')
+def productview(request):
+        context = {}
+        return render(request,'store/product.html', context)
+>>>>>>> origin/twilio
 
 # cart
 def update_cart_counter(cart):  # count the cart_items
