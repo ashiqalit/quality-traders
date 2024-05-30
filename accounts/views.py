@@ -3,7 +3,6 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-<<<<<<< HEAD
 from django.http import JsonResponse
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.views.decorators.cache import never_cache
@@ -22,47 +21,17 @@ from store.models import (
     WalletTransaction,
 )
 # Create your views here.
-=======
-from django.contrib.auth.models import User, auth
-from .forms import CreateUserForm
-from django.http import JsonResponse, HttpResponse
-from .models import Profile
-import random, json, uuid
-from .helper import MessageHandler
-
->>>>>>> origin/twilio
 
 
 @never_cache
 def registerpage(request):
     if request.user.is_authenticated:
-<<<<<<< HEAD
         return redirect("home")
     else:
         form = CreateUserForm()
         if request.method == "POST":
             form = CreateUserForm(request.POST)
             if form.is_valid():
-=======
-        return redirect('home')
-    if request.method == 'POST':
-        form = CreateUserForm(request.POST)
-        if form.is_valid():
-            user=form.save()
-            otp=random.randint(1000,9999)
-            profile=Profile.objects.create(otp=f'{otp}')
-            profile.uid = str(uuid.uuid4())
-            if request.POST.get('method_otp')=="id_otp_1":
-                messagehandler=MessageHandler(request.POST.get('phone'),otp).send_otp_via_whatsapp()
-            else:
-                pass
-                # messagehandler=MessageHandler(request.POST.get('phone'),otp).send_otp_via_message()
-            red=redirect(f'otp/{profile.uid}/')
-            red.set_cookie("can_otp_enter",True,max_age=600) 
-            return red  
-    context = {'form':form}
-    return render(request, 'store/auth/register.html', context)
->>>>>>> origin/twilio
 
                 referred_code = form.cleaned_data["referred_code"]
                 # checks if referral code entered
@@ -129,7 +98,6 @@ def logoutpage(request):
         pass
 
     logout(request)
-<<<<<<< HEAD
     return redirect("login")
 
 
@@ -240,21 +208,3 @@ def profile_orders(request):
         "orders": orders,
     }
     return render(request, "store/edit_orders_profile.html", context)
-=======
-    messages.success(request, 'Logged out Successfully')
-    return redirect('login')
-
-def otpVerify(request,uid):
-    if request.user.is_authenticated:
-        return redirect('home')
-    if request.method=="POST":
-        profile=Profile.objects.get(uid=uid)     
-        if request.COOKIES.get('can_otp_enter')!=None:
-            if request.POST['otp'] == profile.otp:
-                red=redirect('home')
-                red.set_cookie('verified',True)
-                return red
-    return render(request,"store/auth/otp.html",{'id':uid})
-  
-     
->>>>>>> origin/twilio

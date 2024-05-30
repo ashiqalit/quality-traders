@@ -181,6 +181,8 @@ CRISPY_TEMPLATE_PACK = "bootstrap3"
 # Path for GDAL and GEOS (part of PostGIS)
 # GDAL_LIBRARY_PATH = "C:\\OSGeo4W\\bin\\gdal308.dll"
 # GEOS_LIBRARY_PATH = "C:\\OSGeo4W\\bin\\geos_c.dll"
+#GDAL_LIBRARY_PATH = "/usr/lib/x86_64-linux-gnu/libgdal.so"
+#GEOS_LIBRARY_PATH = "/usr/lib/x86_64-linux-gnu/libgeos.so.3.12.1"
 
 # Razorpay credentials
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
