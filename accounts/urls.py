@@ -3,7 +3,6 @@ from django.contrib.auth import views as auth_views
 from . import views
 
 urlpatterns = [
-<<<<<<< HEAD
     path("register", views.registerpage, name="register"),
     path("login", views.loginpage, name="login"),
     path("logout", views.logoutpage, name="logout"),
@@ -40,11 +39,4 @@ urlpatterns = [
     path("edit_address/<str:pk>", views.edit_address, name="edit_address"),
     path("remove-address", views.remove_address, name="removeaddress"),
     path("profile_orders", views.profile_orders, name="profile_orders"),
-=======
-    path('register', views.registerpage, name='register'),
-    path('login', views.loginpage, name='login'),
-    path('logout', views.logoutpage, name='logout'), 
-    path('otp/<str:uid>/', views.otpVerify, name='otp'),   
-
->>>>>>> origin/twilio
 ]
