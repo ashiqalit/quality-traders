@@ -7,8 +7,8 @@ from decimal import Decimal
 from phonenumber_field.modelfields import PhoneNumberField
 from PIL import Image
 from django.db import models
-from django.contrib.gis.db import models
-from django.contrib.gis.geos import Point
+# from django.contrib.gis.db import models
+# from django.contrib.gis.geos import Point
 from django.db.models import Sum
 from django.contrib.auth.models import User
 from django import forms
@@ -235,7 +235,7 @@ class Coupon(models.Model):
         return cls.objects.filter(valid_from__lte=now, valid_to__gte=now, active=True)
 
 
-DEFAULT_LOCATION = Point(10.89503953926854, 76.18858690219396, srid=4326)
+# DEFAULT_LOCATION = Point(10.89503953926854, 76.18858690219396, srid=4326)
 
 
 class Address(models.Model):
