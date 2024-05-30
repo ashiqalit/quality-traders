@@ -976,10 +976,16 @@ def return_order(request):
 def wishlist(request):
     try:
         cart = Cart.objects.get(user=request.user)
-        wishlist = Wishlist.objects.get(user=request.user)
+        try:
+            wishlist = Wishlist.objects.get(user=request.user)
+        except:
+            wishlist = Wishlist.objects.create(user=request.user)
     except Wishlist.DoesNotExist:
         cart = Cart.objects.create(user=request.user)
-        wishlist = Wishlist.objects.create(user=request.user)
+        try:
+            wishlist = Wishlist.objects.get(user=request.user)
+        except:
+            wishlist = Wishlist.objects.create(user=request.user)
 
     wishlist_items = WishlistItem.objects.filter(wishlist=wishlist)
 

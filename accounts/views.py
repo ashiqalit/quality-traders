@@ -72,6 +72,7 @@ def registerpage(request):
 @never_cache
 def loginpage(request):
     if request.user.is_authenticated:
+        cart = Cart.objects.get_or_create(user=request.user)
         return redirect("home")
     else:
         form = CreateUserForm()
