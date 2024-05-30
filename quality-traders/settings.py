@@ -180,8 +180,8 @@ CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap3"
 CRISPY_TEMPLATE_PACK = "bootstrap3"
 
 # Path for GDAL and GEOS (part of PostGIS)
-GDAL_LIBRARY_PATH = "C:\\OSGeo4W\\bin\\gdal308.dll"
-GEOS_LIBRARY_PATH = "C:\\OSGeo4W\\bin\\geos_c.dll"
+#GDAL_LIBRARY_PATH = "/usr/lib/x86_64-linux-gnu/libgdal.so"
+#GEOS_LIBRARY_PATH = "/usr/lib/x86_64-linux-gnu/libgeos.so.3.12.1"
 
 # Razorpay credentials
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
@@ -218,6 +218,7 @@ DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 # print(AWS_DEFAULT_ACL)
 # print(AWS_S3_VERIFY)
 # print(DEFAULT_FILE_STORAGE)
+<<<<<<< Updated upstream
 =======
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -228,3 +229,5 @@ COUNTRY_CODE='+91'
 TWILIO_WHATSAPP_NUMBER='whatsapp:+14155238886'
 TWILIO_PHONE_NUMBER='+15103067746'
 >>>>>>> origin/twilio
+=======
+>>>>>>> Stashed changes
