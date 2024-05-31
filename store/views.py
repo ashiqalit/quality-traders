@@ -585,7 +585,7 @@ def checkout(request):
                             neworder.payment = 2
                             neworder.status = 2
                             new_total = wallet.update_total(-grand_total)
-                            if new_total > 0:
+                            if new_total >= 0:
                                 neworder.save()
                                 wallettransaction = wallet.wallettransaction_set.create(
                                     amount=-grand_total,
