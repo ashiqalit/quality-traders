@@ -58,19 +58,17 @@
                                                                     <td>{{item.products.availability}}</td>
                                                                     <td>
                                                                     {% if item.products.availability == 'In stock' and item.products.quantity > 0 %}
-                                                                        {% if cart_item %}
-                                                                            {% if item.products.quantity > cart_item.product_qty %}
-                                                                                <a href="#" data-wishlist_items={{item.products.id}} data-action="add"
-                                                                                   class="btn btn-success add-to-wishlist-cart"><i class="fa fa-shopping-cart"></i>Add
-                                                                                to cart</a>
-                                                                            {% else %}
-                                                                                <a href="" class="btn btn-success">Cart limit Reached</a>
+                                                                        {% for cart_item in cart.cartitem_set.all %}
+                                                                            {% if cart_item.product.id == item.products.id %}
+                                                                                {% if item.products.quantity > cart_item.product_qty %}
+                                                                                    <a href="#" data-wishlist_items={{item.products.id}} data-action="add"
+                                                                                       class="btn btn-success add-to-wishlist-cart"><i class="fa fa-shopping-cart"></i>Add
+                                                                                    to cart</a>
+                                                                                {% else %}
+                                                                                    <a href="" class="btn btn-success">Cart limit Reached</a>
+                                                                                {% endif %}    
                                                                             {% endif %}
-                                                                        {% else %}
-                                                                            <a href="#" data-wishlist_items={{item.products.id}} data-action="add"
-                                                                            class="btn btn-success add-to-wishlist-cart"><i class="fa fa-shopping-cart"></i>Add
-                                                                            to cart</a>
-                                                                        {% endif %}
+                                                                        {% endfor %}
                                                                     {% else %}
                                                                       <button class="btn btn-defalt" id="will_back">Wil be back</button>
                                                                     {% endif %}

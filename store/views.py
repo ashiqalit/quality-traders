@@ -977,13 +977,10 @@ def wishlist(request):
     wishlist, created = Wishlist.objects.get_or_create(user=request.user)
     wishlist_items = WishlistItem.objects.filter(wishlist=wishlist)
 
-    for item in wishlist_items:
-        cart_item = cart.cartitem_set.filter(id=item.products.id).first()
     context = {
         "wishlist": wishlist,
         "wishlist_items": wishlist_items,
-        "cart": cart,
-        'cart_item':cart_item,
+        "cart": cart
     }
     return render(request, "store/wishlist.html", context)
 
