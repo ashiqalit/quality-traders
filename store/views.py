@@ -514,8 +514,7 @@ def checkout(request):
     if not cart_items:
         # If cart items are empty, redirect to cart page
         return redirect("showcart")
-    wallet = Wallet.objects.get(user=request.user)
-
+    wallet, created = Wallet.objects.get_or_create(user=request.user)
     # POST request
     if request.method == "POST":
 
