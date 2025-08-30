@@ -48,7 +48,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "django.contrib.gis",
+    # "django.contrib.gis",
     "accounts.apps.AccountsConfig",
     "store.apps.StoreConfig",
     "dashboard.apps.DashboardConfig",
@@ -162,7 +162,7 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-STATICFIELDS_DIRS = [os.path.join(BASE_DIR, "static")]
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 STATIC_ROOT = os.path.join(BASE_DIR, "assets")
 
 MEDIA_URL = "media/"
@@ -181,8 +181,8 @@ CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap3"
 CRISPY_TEMPLATE_PACK = "bootstrap3"
 
 # Path for GDAL and GEOS (part of PostGIS)
-GDAL_LIBRARY_PATH = "C:\\OSGeo4W\\bin\\gdal308.dll"
-GEOS_LIBRARY_PATH = "C:\\OSGeo4W\\bin\\geos_c.dll"
+# GDAL_LIBRARY_PATH = "C:\\OSGeo4W\\bin\\gdal308.dll"
+# GEOS_LIBRARY_PATH = "C:\\OSGeo4W\\bin\\geos_c.dll"
 
 # Razorpay credentials
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
@@ -200,22 +200,4 @@ RAZOR_KEY_SECRET = config("RAZOR_KEY_SECRET")
 # AWS_S3_VERIFY = config("AWS_S3_VERIFY", default=True, cast=bool)
 # DEFAULT_FILE_STORAGE = config("DEFAULT_FILE_STORAGE")
 
-AWS_ACCESS_KEY_ID = "AKIA2UC3DJ5M6SGLGMIG"
-AWS_SECRET_ACCESS_KEY = "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"
-AWS_STORAGE_BUCKET_NAME = "myqualitybucket"
-AWS_S3_SIGNATURE_NAME = "s3v4"
-AWS_S3_REGION_NAME = "eu-north-1"
-AWS_S3_FILE_OVERWRITE = False
-AWS_DEFAULT_ACL = None
-AWS_S3_VERIFY = True
-DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
-
-# print(AWS_ACCESS_KEY_ID)
-# print(AWS_SECRET_ACCESS_KEY)
-# print(AWS_STORAGE_BUCKET_NAME)
-# print(AWS_S3_SIGNATURE_NAME)
-# print(AWS_S3_REGION_NAME)
-# print(AWS_S3_FILE_OVERWRITE)
-# print(AWS_DEFAULT_ACL)
-# print(AWS_S3_VERIFY)
-# print(DEFAULT_FILE_STORAGE)
+DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
