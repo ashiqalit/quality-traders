@@ -36,7 +36,7 @@ $('.pay_with_razorpay').click(function (e) {
         })
             .done(function (data) {
                 var options = {
-                    key: 'rzp_test_1DBm3kToLW56S3',
+                    key: checkoutData.attr('data-razorpay-key-id'),
                     amount: grandTotalNumeric * 100,
                     currency: "INR",
                     name: "Quality Traders",

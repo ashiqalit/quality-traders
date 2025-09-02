@@ -101,7 +101,7 @@
 													<br>{{form.address}}
 												</div>
 												<!-- <input type="hidden" value="COD" name="payment_mode"> -->
-												<button type="submit" class="btn btn-default check_out">Submit</button>
+												<button type="submit" name="add_address_submit" class="btn btn-default check_out">Submit</button>
 											</form>
 
 										</div>
@@ -152,8 +152,8 @@
 										<button type="button" name="payment_mode" value="Razorpay" class="btn btn-default pay_with_razorpay check_out pay_btn" data-neworder="{{ order_id }}"
 										id="rzp-button1">Razorpay</button>
 									</div>
-									<div id="checkout-data" data-email="{{ email }}" data-name="{{ name }}">
-									</div>
+									<div id="checkout-data" data-email="{{ email }}" data-name="{{ name }}" data-razorpay-key-id="{{ razorpay_key_id }}"></div>
+									
 								</div>
 							</form>
 						</div>

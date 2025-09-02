@@ -67,8 +67,8 @@ def home(request):
         is_active=True,
         category__is_active=True,
         sub_category__is_active=True,
-        brand__is_active=True
-        ).order_by("name")
+        brand__is_active=True,
+    ).order_by("name")
     banner_images = Banner.objects.all()
 
     paginator = Paginator(products, 6)  # show 6 products per page
@@ -517,145 +517,173 @@ def checkout(request):
     wallet, created = Wallet.objects.get_or_create(user=request.user)
     # POST request
     if request.method == "POST":
-
-        # Adding address from checkout page
-        form = AddressForm(request.POST)
-        if form.is_valid():
-            address = form.save(commit=False)
-            address.user = request.user
-            address.save()
-            messages.info(request, "New address added")
-            return redirect("checkout")
-
-        # selecting address and payment mode
-        selected_address_id = request.POST.get("selected_address")
-        payment_mode = request.POST.get("payment_mode")
-        payment_id = request.POST.get("payment_id")
-
-        if payment_mode != "Razorpay":
-            if selected_address_id and payment_mode and cart_items:
-                for item in cart_items:
-                    if item.product_qty <= item.product.quantity:
-
-                        # print('Payment method:',payment_mode)
-                        selected_address = Address.objects.get(pk=selected_address_id)
-                        neworder = Order(
-                            user=request.user,
-                            payment_mode=payment_mode,
-                            fname=selected_address.fname,
-                            lname=selected_address.lname,
-                            email=selected_address.email,
-                            phone=selected_address.phone,
-                            address=selected_address.address,
-                            pincode=selected_address.pincode,
-                        )
-                        neworder.total_price = total_price
-                        neworder.coupon_discount_price = discount_amount
-                        neworder.offer_discount_price = total_offer
-                        neworder.delivery_charge = delivery_charge
-                        grand_total = (
-                            total_price
-                            + delivery_charge
-                            - discount_amount
-                            - total_offer
-                        )
-
-                        # setting tracking number to the neworder
-                        track_no = str(request.user.username) + str(
-                            random.randint(1111111, 9999999)
-                        )
-                        while Order.objects.filter(tracking_no=track_no) is None:
-                            track_no = "order_" + str(random.randint(1111111, 9999999))
-                        neworder.tracking_no = track_no
-                        neworder.payment_id = payment_id
-
-                        # setting payment status according to payment methods
-                        if payment_mode == "COD":  # cod
-                            if grand_total > 1000:
-                                messages.error(
-                                    request, "Order above ₹1000 is not eligible for COD"
-                                )
-                                return redirect("checkout")
-                            else:
-                                neworder.payment = 1
-                                neworder.status = 2
-                                neworder.save()
-
-                        elif payment_mode == "Wallet":  # wallet
-                            neworder.payment = 2
-                            neworder.status = 2
-                            new_total = wallet.update_total(-grand_total)
-                            if new_total >= 0:
-                                neworder.save()
-                                wallettransaction = wallet.wallettransaction_set.create(
-                                    amount=-grand_total,
-                                    order=neworder,
-                                    status="Wallet deduction",
-                                    is_credit=True,
-                                )
-                            else:
-                                messages.error(
-                                    request, "Insufficient fund in your wallet"
-                                )
-
-                        else:
-                            neworder.save()
-
-                        neworder_items = cart_items
-                        for item in neworder_items:
-                            OrderItem.objects.create(
-                                order=neworder,
-                                product=item.product,
-                                price=item.product.price,
-                                quantity=item.product_qty,
-                            )
-                            orderproduct = Product.objects.filter(
-                                id=item.product.id
-                            ).first()
-                            orderproduct.quantity -= item.product_qty
-                            orderproduct.availability = (
-                                "Out of stock"
-                                if orderproduct.quantity == 0
-                                else "In stock"
-                            )
-                            orderproduct.save()
-
-                        # clear the cart
-                        for item in cart_items:
-                            item.delete()
-                        cart.delete()
-
-                        # payMode = request.POST.get('payment_mode')
-                        # if payMode == "Razorpay":
-                        #     return JsonResponse({'status':"Your order has been placed successfully"})
-                        # else:
-                        #     messages.success(request, "Your order has been placed successfully")
-                        #     return redirect('orderview', t_no=neworder.tracking_no)
-                        if payment_mode == "Razorpay":
-                            invoice_url = reverse(
-                                "generate_invoice", kwargs={"pk": neworder.pk}
-                            )
-
-                            return JsonResponse(
-                                {
-                                    "status": "Your order has been placed successfully",
-                                    "t_no": neworder.tracking_no,
-                                    "grand_total": grand_total,
-                                }
-                            )
-                        messages.success(
-                            request, "Your order has been placed successfully"
-                        )
-                        return redirect("orderview", t_no=neworder.tracking_no)
-                    else:
-                        messages.error(request, "Check quanties you added in the cart")
-                        return redirect("checkout")
-
-            else:
-                messages.error(
-                    request, "Please select an address or put items in to cart"
-                )
+        # Check if the add address form is submitted
+        if "add_address_submit" in request.POST:
+            # Adding address from checkout page
+            form = AddressForm(request.POST)
+            if form.is_valid():
+                address = form.save(commit=False)
+                address.user = request.user
+                address.save()
+                messages.info(request, "New address added")
                 return redirect("checkout")
+            else:
+                # If the form is not valid, we need to re-render the page
+                # with the form and its errors.
+                addresses = Address.objects.filter(user=request.user)
+                context = {
+                    "form": form,
+                    "addresses": addresses,
+                    "cartitems": cart_items,
+                    "total_price": total_price,
+                    "discount_amount": round(discount_amount, 2),
+                    "offer_discount": total_offer,
+                    "delivery_charge": delivery_charge,
+                    "grand_total": round(grand_total, 2),
+                    "email": request.user.email,
+                    "name": request.user.username,
+                }
+                return render(request, "store/checkout.html", context)
+        # Check if request is for placing the order
+        elif "payment_mode" in request.POST:
+            # selecting address and payment mode
+            selected_address_id = request.POST.get("selected_address")
+            payment_mode = request.POST.get("payment_mode")
+            payment_id = request.POST.get("payment_id")
+
+            if payment_mode != "Razorpay":
+                if selected_address_id and payment_mode and cart_items:
+                    for item in cart_items:
+                        if item.product_qty <= item.product.quantity:
+
+                            # print('Payment method:',payment_mode)
+                            selected_address = Address.objects.get(
+                                pk=selected_address_id
+                            )
+                            neworder = Order(
+                                user=request.user,
+                                payment_mode=payment_mode,
+                                fname=selected_address.fname,
+                                lname=selected_address.lname,
+                                email=selected_address.email,
+                                phone=selected_address.phone,
+                                address=selected_address.address,
+                                pincode=selected_address.pincode,
+                            )
+                            neworder.total_price = total_price
+                            neworder.coupon_discount_price = discount_amount
+                            neworder.offer_discount_price = total_offer
+                            neworder.delivery_charge = delivery_charge
+                            grand_total = (
+                                total_price
+                                + delivery_charge
+                                - discount_amount
+                                - total_offer
+                            )
+
+                            # setting tracking number to the neworder
+                            track_no = str(request.user.username) + str(
+                                random.randint(1111111, 9999999)
+                            )
+                            while Order.objects.filter(tracking_no=track_no) is None:
+                                track_no = "order_" + str(
+                                    random.randint(1111111, 9999999)
+                                )
+                            neworder.tracking_no = track_no
+                            neworder.payment_id = payment_id
+
+                            # setting payment status according to payment methods
+                            if payment_mode == "COD":  # cod
+                                if grand_total < 1000:
+                                    messages.error(
+                                        request,
+                                        "Order above ₹1000 is not eligible for COD",
+                                    )
+                                    return redirect("checkout")
+                                else:
+                                    neworder.payment = 1
+                                    neworder.status = 2
+                                    neworder.save()
+
+                            elif payment_mode == "Wallet":  # wallet
+                                neworder.payment = 2
+                                neworder.status = 2
+                                new_total = wallet.update_total(-grand_total)
+                                if new_total >= 0:
+                                    neworder.save()
+                                    wallettransaction = (
+                                        wallet.wallettransaction_set.create(
+                                            amount=-grand_total,
+                                            order=neworder,
+                                            status="Wallet deduction",
+                                            is_credit=True,
+                                        )
+                                    )
+                                else:
+                                    messages.error(
+                                        request, "Insufficient fund in your wallet"
+                                    )
+
+                            else:
+                                neworder.save()
+
+                            neworder_items = cart_items
+                            for item in neworder_items:
+                                OrderItem.objects.create(
+                                    order=neworder,
+                                    product=item.product,
+                                    price=item.product.price,
+                                    quantity=item.product_qty,
+                                )
+                                orderproduct = Product.objects.filter(
+                                    id=item.product.id
+                                ).first()
+                                orderproduct.quantity -= item.product_qty
+                                orderproduct.availability = (
+                                    "Out of stock"
+                                    if orderproduct.quantity == 0
+                                    else "In stock"
+                                )
+                                orderproduct.save()
+
+                            # clear the cart
+                            for item in cart_items:
+                                item.delete()
+                            cart.delete()
+
+                            # payMode = request.POST.get('payment_mode')
+                            # if payMode == "Razorpay":
+                            #     return JsonResponse({'status':"Your order has been placed successfully"})
+                            # else:
+                            #     messages.success(request, "Your order has been placed successfully")
+                            #     return redirect('orderview', t_no=neworder.tracking_no)
+                            if payment_mode == "Razorpay":
+                                invoice_url = reverse(
+                                    "generate_invoice", kwargs={"pk": neworder.pk}
+                                )
+
+                                return JsonResponse(
+                                    {
+                                        "status": "Your order has been placed successfully",
+                                        "t_no": neworder.tracking_no,
+                                        "grand_total": grand_total,
+                                    }
+                                )
+                            messages.success(
+                                request, "Your order has been placed successfully"
+                            )
+                            return redirect("orderview", t_no=neworder.tracking_no)
+                        else:
+                            messages.error(
+                                request, "Check quanties you added in the cart"
+                            )
+                            return redirect("checkout")
+
+                else:
+                    messages.error(
+                        request, "Please select an address or put items in to cart"
+                    )
+                    return redirect("checkout")
 
     else:
         form = AddressForm()
@@ -664,7 +692,6 @@ def checkout(request):
         cart_items = cart.cartitem_set.all()
         email = request.user.email
         name = request.user.username
-
         context = {
             "form": form,
             "addresses": addresses,
@@ -677,6 +704,7 @@ def checkout(request):
             "order_id": neworder.id if request.method == "POST" else None,
             "email": email,
             "name": name,
+            "razorpay_key_id": settings.RAZOR_KEY_ID,
         }
         return render(request, "store/checkout.html", context)
 
@@ -977,11 +1005,7 @@ def wishlist(request):
     wishlist, created = Wishlist.objects.get_or_create(user=request.user)
     wishlist_items = WishlistItem.objects.filter(wishlist=wishlist)
 
-    context = {
-        "wishlist": wishlist,
-        "wishlist_items": wishlist_items,
-        "cart": cart
-    }
+    context = {"wishlist": wishlist, "wishlist_items": wishlist_items, "cart": cart}
     return render(request, "store/wishlist.html", context)
 
 
